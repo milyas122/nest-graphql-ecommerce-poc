@@ -1,8 +1,7 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Post, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto';
 import { LoginDto } from './dto/login-user.dto';
-import { Request } from 'express';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { AdminGuard } from './guards/admin.guard';
 
@@ -24,7 +23,6 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard, AdminGuard)
-  // @UseGuards(AdminGuard)
   @Post('signup/seller')
   async createSeller(@Body() data: CreateUserDto) {
     return this.authService.createSeller(data);
