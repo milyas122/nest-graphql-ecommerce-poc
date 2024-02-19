@@ -4,6 +4,8 @@ import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // apply global pipe for schema validation
   app.useGlobalPipes(
     new ValidationPipe({
       dismissDefaultMessages: true,

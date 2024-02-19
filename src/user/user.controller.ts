@@ -7,12 +7,8 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  async createUser(
-    @Body(
-      new ValidationPipe({
-        dismissDefaultMessages: true,
-      }),
-    )
+  async signupUser(
+    @Body()
     data: CreateUserDto,
   ) {
     return this.userService.createUser(data);
