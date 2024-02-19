@@ -5,10 +5,10 @@ import { User, UserRole } from './entities/user.entity';
 import { EntityManager, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
-import { ICreateUser } from './user.interfaces';
+import { ICreateUser } from './auth.interfaces';
 
 @Injectable()
-export class UserService {
+export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly entityManager: EntityManager,
