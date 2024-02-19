@@ -6,3 +6,5 @@ export interface ICreateUser {
   name: string;
   role: UserRole;
 }
+
+export interface ILogin extends ICreateUser {}

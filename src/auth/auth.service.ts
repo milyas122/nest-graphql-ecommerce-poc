@@ -1,5 +1,9 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import CreateUserDto from './dto';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
+import { CreateUserDto, LoginDto } from './dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User, UserRole } from './entities/user.entity';
 import { EntityManager, Repository } from 'typeorm';
@@ -44,8 +48,43 @@ export class AuthService {
       role: user.role,
     };
 
-    const accessToken = await this.jwtService.signAsync(payload);
+    const accessToken = await this.generateToken(payload);
 
     return { user: payload, access_token: accessToken };
+  }
+
+  async login({
+    email,
+    password,
+  }: LoginDto): Promise<{ user: ICreateUser; access_token: string }> {
+    const user = await this.userRepository.findOneBy({ email });
+
+    if (!user) {
+      throw new UnauthorizedException('email or password is invalid');
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+
+    if (!isMatch) {
+      throw new UnauthorizedException('email or password is invalid');
+    }
+
+    const payload = {
+      sub: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    };
+
+    const accessToken = await this.generateToken(payload);
+
+    return {
+      user: payload,
+      access_token: accessToken,
+    };
+  }
+
+  private async generateToken(payload: ICreateUser) {
+    return await this.jwtService.signAsync(payload);
   }
 }
