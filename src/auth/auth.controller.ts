@@ -3,13 +3,14 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from './dto';
 import { LoginDto } from './dto/login-user.dto';
 import { Request } from 'express';
-import { JwtAuthGuard } from './jwt-auth.guard';
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { AdminGuard } from './guards/admin.guard';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post('signup')
+  @Post('signup/user')
   async signup(
     @Body()
     data: CreateUserDto,
@@ -20,5 +21,12 @@ export class AuthController {
   @Post('login')
   async login(@Body() data: LoginDto) {
     return this.authService.login(data);
+  }
+
+  @UseGuards(JwtAuthGuard, AdminGuard)
+  // @UseGuards(AdminGuard)
+  @Post('signup/seller')
+  async createSeller(@Body() data: CreateUserDto) {
+    return this.authService.createSeller(data);
   }
 }

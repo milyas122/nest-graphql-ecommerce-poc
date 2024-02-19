@@ -84,6 +84,32 @@ export class AuthService {
     };
   }
 
+  async createSeller({ email, name, password }: CreateUserDto) {
+    const isUserExist = await this.userRepository.findOneBy({ email });
+
+    if (isUserExist) {
+      throw new BadRequestException('email already exist');
+    }
+
+    const hashPassword = await bcrypt.hash(password, 10);
+
+    const user = new User({
+      email,
+      name,
+      role: UserRole.SELLER,
+      password: hashPassword,
+    });
+
+    await this.entityManager.save(user);
+
+    return {
+      sub: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+    };
+  }
+
   private async generateToken(payload: ICreateUser) {
     return await this.jwtService.signAsync(payload);
   }
