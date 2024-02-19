@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Product } from 'src/product/entities/product.entity';
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -22,6 +23,9 @@ export class User {
 
   @Column()
   password: string;
+
+  @OneToMany(() => Product, (product) => product.seller_id, { cascade: true })
+  products: Product[];
 
   constructor(entity: Partial<User>) {
     Object.assign(this, entity);

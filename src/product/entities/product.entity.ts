@@ -1,4 +1,5 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { User } from 'src/auth/entities/user.entity';
+import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
 export class Product {
@@ -17,7 +18,8 @@ export class Product {
   @Column()
   stock: number;
 
-  // seller Id
+  @ManyToOne(() => User, (user) => user.products)
+  seller_id: string;
 
   constructor(entity: Partial<Product>) {
     Object.assign(this, entity);
