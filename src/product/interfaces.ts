@@ -14,3 +14,5 @@ export interface IGetProductDetail {
 }
 
 export interface IRemoveProduct extends IGetProductDetail {}
+
+export interface IUpdateProduct extends IGetProductDetail {}

@@ -5,12 +5,13 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { ProductService } from './product.service';
-import { CreateProductDto } from './dto';
+import { CreateProductDto, UpdateProductDto } from './dto';
 import { Request } from 'express';
 import { IJwtPayload } from './interfaces';
 import { AdminSellerGuard, JwtAuthGuard, SellerGuard } from 'src/guards';
@@ -61,5 +62,21 @@ export class ProductController {
     await this.productService.removeProduct({ productId: id, userId, role });
 
     return { message: 'product deleted successfully' };
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard, AdminSellerGuard)
+  async updateProduct(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() data: UpdateProductDto,
+    @Req() req: Request,
+  ) {
+    const { id: userId, role } = req.user as IJwtPayload;
+
+    return await this.productService.updateProduct(data, {
+      productId: id,
+      role,
+      userId,
+    });
   }
 }

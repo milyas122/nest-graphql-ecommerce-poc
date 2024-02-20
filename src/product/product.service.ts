@@ -2,8 +2,13 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
-import { CreateProductDto } from './dto';
-import { IGetProductDetail, IJwtPayload, IRemoveProduct } from './interfaces';
+import { CreateProductDto, UpdateProductDto } from './dto';
+import {
+  IGetProductDetail,
+  IJwtPayload,
+  IRemoveProduct,
+  IUpdateProduct,
+} from './interfaces';
 import { User, UserRole } from 'src/auth/entities/user.entity';
 
 @Injectable()
@@ -42,7 +47,6 @@ export class ProductService {
     });
   }
 
-  // admin access bug
   async getProductDetail({ productId, userId, role }: IGetProductDetail) {
     const where = {
       id: productId,
@@ -77,6 +81,34 @@ export class ProductService {
       throw new BadRequestException('product not found');
     }
   }
+
+  async updateProduct(
+    data: UpdateProductDto,
+    { productId, userId, role }: IUpdateProduct,
+  ) {
+    if (Object.keys(data).length === 0) {
+      throw new BadRequestException('body should not be empty');
+    }
+
+    const where = {
+      id: productId,
+    };
+
+    if (role === UserRole.SELLER) {
+      where['seller'] = { id: userId };
+    }
+
+    const { affected } = await this.productRepository.update(
+      { ...where },
+      { ...data },
+    );
+
+    if (affected === 0) {
+      throw new BadRequestException('product not found');
+    }
+  }
+
+  // get seller object
   private async getSellerObj(id: string) {
     return await this.userRepository.findOneBy({ id });
   }
