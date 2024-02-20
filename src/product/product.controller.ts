@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   ParseUUIDPipe,
@@ -43,5 +44,18 @@ export class ProductController {
   ) {
     const { id: sellerId } = req.user as IJwtPayload;
     return await this.productService.getProductDetail({ id, sellerId });
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard, AdminSellerGuard)
+  async removeProduct(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: Request,
+  ) {
+    const { id: userId, role } = req.user as IJwtPayload;
+
+    await this.productService.removeProduct({ id, sellerId: userId, role });
+
+    return { message: 'product deleted successfully' };
   }
 }

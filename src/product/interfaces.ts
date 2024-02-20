@@ -11,3 +11,7 @@ export interface IGetProductDetail {
   id: string;
   sellerId: string;
 }
+
+export interface IRemoveProduct extends IGetProductDetail {
+  role: UserRole;
+}

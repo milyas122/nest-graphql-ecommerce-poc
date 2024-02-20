@@ -3,8 +3,8 @@ import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto';
-import { IGetProductDetail, IJwtPayload } from './interfaces';
-import { User } from 'src/auth/entities/user.entity';
+import { IGetProductDetail, IJwtPayload, IRemoveProduct } from './interfaces';
+import { User, UserRole } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class ProductService {
@@ -42,6 +42,7 @@ export class ProductService {
     });
   }
 
+  // admin access bug
   async getProductDetail({ id, sellerId }: IGetProductDetail) {
     const product = await this.productRepository.findOne({
       where: { id, seller: { id: sellerId } },
@@ -53,6 +54,20 @@ export class ProductService {
     return product;
   }
 
+  async removeProduct({ id, sellerId, role }: IRemoveProduct) {
+    const where = {
+      id,
+    };
+
+    if (role === UserRole.SELLER) {
+      where['seller'] = { id: sellerId };
+    }
+    const { affected } = await this.productRepository.delete({ ...where });
+
+    if (affected === 0) {
+      throw new BadRequestException('product not found');
+    }
+  }
   private async getSellerObj(id: string) {
     return await this.userRepository.findOneBy({ id });
   }
