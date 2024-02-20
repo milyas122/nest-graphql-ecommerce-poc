@@ -33,10 +33,12 @@ export class ProductService {
       return await this.productRepository.find();
     }
 
-    const seller = await this.getSellerObj(userId);
-
     return await this.productRepository.find({
-      where: { seller },
+      where: {
+        seller: {
+          id: userId,
+        },
+      },
     });
   }
 
