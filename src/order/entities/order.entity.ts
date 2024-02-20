@@ -37,7 +37,9 @@ export class Order {
   @ManyToOne(() => User, (user) => user.orders)
   buyer: User;
 
-  @OneToMany(() => ProductOrder, (productOrder) => productOrder.order)
+  @OneToMany(() => ProductOrder, (productOrder) => productOrder.order, {
+    cascade: true,
+  })
   productOrders: ProductOrder[];
 
   constructor(entity: Partial<Order>) {
