@@ -9,7 +9,7 @@ import { User, UserRole } from './entities/user.entity';
 import { EntityManager, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
-import { ICreateUser } from './auth.interfaces';
+import { ICreateUser } from './interfaces';
 
 @Injectable()
 export class AuthService {

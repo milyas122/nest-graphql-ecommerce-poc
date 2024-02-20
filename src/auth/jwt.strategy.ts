@@ -2,10 +2,11 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { ICreateUser } from './auth.interfaces';
+import { ICreateUser } from './interfaces';
 import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
+import { IJwtPayload } from 'src/product/interfaces';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -20,14 +21,20 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     });
   }
 
-  async validate(payload: ICreateUser) {
+  async validate(payload: ICreateUser): Promise<IJwtPayload> {
     const { sub } = payload;
-    const isUser = await this.userRepository.findBy({ id: sub });
+
+    const isUser = await this.userRepository.findOneBy({ id: sub });
 
     if (!isUser) {
       throw new UnauthorizedException('user not found or invalid token');
     }
-
-    return payload;
+    const userObj: IJwtPayload = {
+      id: isUser.id,
+      email: isUser.email,
+      name: isUser.name,
+      role: isUser.role,
+    };
+    return userObj;
   }
 }
