@@ -24,7 +24,7 @@ export class User {
   @Column()
   password: string;
 
-  @OneToMany(() => Product, (product) => product.seller_id, { cascade: true })
+  @OneToMany(() => Product, (product) => product.seller, { cascade: true })
   products: Product[];
 
   constructor(entity: Partial<User>) {

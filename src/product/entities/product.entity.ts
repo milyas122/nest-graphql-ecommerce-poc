@@ -19,7 +19,7 @@ export class Product {
   stock: number;
 
   @ManyToOne(() => User, (user) => user.products)
-  seller_id: string;
+  seller: User;
 
   constructor(entity: Partial<Product>) {
     Object.assign(this, entity);
