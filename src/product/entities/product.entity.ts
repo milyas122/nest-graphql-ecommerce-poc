@@ -1,5 +1,5 @@
 import { User } from 'src/auth/entities/user.entity';
-import { ProductOrder } from 'src/order/entities';
+import { ProductOrder } from 'src/order/entities/product-order.entity';
 import {
   Column,
   Entity,
