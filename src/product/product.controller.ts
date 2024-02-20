@@ -42,8 +42,12 @@ export class ProductController {
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: Request,
   ) {
-    const { id: sellerId } = req.user as IJwtPayload;
-    return await this.productService.getProductDetail({ id, sellerId });
+    const { id: userId, role } = req.user as IJwtPayload;
+    return await this.productService.getProductDetail({
+      productId: id,
+      userId,
+      role,
+    });
   }
 
   @Delete(':id')
@@ -54,7 +58,7 @@ export class ProductController {
   ) {
     const { id: userId, role } = req.user as IJwtPayload;
 
-    await this.productService.removeProduct({ id, sellerId: userId, role });
+    await this.productService.removeProduct({ productId: id, userId, role });
 
     return { message: 'product deleted successfully' };
   }

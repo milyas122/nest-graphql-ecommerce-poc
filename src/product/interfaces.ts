@@ -8,10 +8,9 @@ export interface IJwtPayload {
 }
 
 export interface IGetProductDetail {
-  id: string;
-  sellerId: string;
-}
-
-export interface IRemoveProduct extends IGetProductDetail {
+  productId: string;
+  userId: string;
   role: UserRole;
 }
+
+export interface IRemoveProduct extends IGetProductDetail {}

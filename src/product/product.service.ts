@@ -43,9 +43,17 @@ export class ProductService {
   }
 
   // admin access bug
-  async getProductDetail({ id, sellerId }: IGetProductDetail) {
+  async getProductDetail({ productId, userId, role }: IGetProductDetail) {
+    const where = {
+      id: productId,
+    };
+
+    if (role === UserRole.SELLER) {
+      where['seller'] = { id: userId };
+    }
+
     const product = await this.productRepository.findOne({
-      where: { id, seller: { id: sellerId } },
+      where: { ...where },
     });
 
     if (!product) {
@@ -54,14 +62,15 @@ export class ProductService {
     return product;
   }
 
-  async removeProduct({ id, sellerId, role }: IRemoveProduct) {
+  async removeProduct({ productId, userId, role }: IRemoveProduct) {
     const where = {
-      id,
+      id: productId,
     };
 
     if (role === UserRole.SELLER) {
-      where['seller'] = { id: sellerId };
+      where['seller'] = { id: userId };
     }
+
     const { affected } = await this.productRepository.delete({ ...where });
 
     if (affected === 0) {
