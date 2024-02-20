@@ -1,5 +1,12 @@
 import { User } from 'src/auth/entities/user.entity';
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import { ProductOrder } from 'src/order/entities';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 @Entity()
 export class Product {
@@ -20,6 +27,9 @@ export class Product {
 
   @ManyToOne(() => User, (user) => user.products)
   seller: User;
+
+  @OneToMany(() => ProductOrder, (productOrder) => productOrder.product)
+  productOrders: ProductOrder[];
 
   constructor(entity: Partial<Product>) {
     Object.assign(this, entity);

@@ -1,3 +1,4 @@
+import { Order } from 'src/order/entities';
 import { Product } from 'src/product/entities/product.entity';
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
@@ -26,6 +27,9 @@ export class User {
 
   @OneToMany(() => Product, (product) => product.seller, { cascade: true })
   products: Product[];
+
+  @OneToMany(() => Order, (order) => order.buyer)
+  orders: Order[];
 
   constructor(entity: Partial<User>) {
     Object.assign(this, entity);
