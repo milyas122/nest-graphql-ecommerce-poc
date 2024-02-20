@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto';
 import { Request } from 'express';
@@ -24,5 +33,15 @@ export class ProductController {
     const { id: userId, role } = req.user as IJwtPayload;
 
     return this.productService.getProducts(userId, role);
+  }
+
+  @Get(':id')
+  @UseGuards(JwtAuthGuard, AdminSellerGuard)
+  async getProductDetail(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: Request,
+  ) {
+    const { id: sellerId } = req.user as IJwtPayload;
+    return await this.productService.getProductDetail({ id, sellerId });
   }
 }

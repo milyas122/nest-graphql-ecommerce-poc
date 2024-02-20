@@ -6,3 +6,8 @@ export interface IJwtPayload {
   name: string;
   role: UserRole;
 }
+
+export interface IGetProductDetail {
+  id: string;
+  sellerId: string;
+}

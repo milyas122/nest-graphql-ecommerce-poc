@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Product } from './entities/product.entity';
 import { CreateProductDto } from './dto';
-import { IJwtPayload } from './interfaces';
+import { IGetProductDetail, IJwtPayload } from './interfaces';
 import { User } from 'src/auth/entities/user.entity';
 
 @Injectable()
@@ -38,6 +38,17 @@ export class ProductService {
     return await this.productRepository.find({
       where: { seller },
     });
+  }
+
+  async getProductDetail({ id, sellerId }: IGetProductDetail) {
+    const product = await this.productRepository.findOne({
+      where: { id, seller: { id: sellerId } },
+    });
+
+    if (!product) {
+      throw new BadRequestException('product not found');
+    }
+    return product;
   }
 
   private async getSellerObj(id: string) {
