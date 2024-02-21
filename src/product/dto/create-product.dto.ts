@@ -1,21 +1,21 @@
 import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
-
+import { productConstants } from 'src/constants/verbose';
 export class CreateProductDto {
-  @IsNotEmpty({ message: 'title is required' })
-  @IsString({ message: 'title must be a string' })
+  @IsNotEmpty({ message: productConstants.titleNotEmpty })
+  @IsString({ message: productConstants.titleMustBeString })
   title: string;
 
-  @IsNotEmpty({ message: 'description is required' })
-  @IsString({ message: 'description must be a string' })
+  @IsNotEmpty({ message: productConstants.descriptionNotEmpty })
+  @IsString({ message: productConstants.descriptionMustBeString })
   description: string;
 
-  @IsNotEmpty({ message: 'price is required' })
+  @IsNotEmpty({ message: productConstants.priceNotEmpty })
   @IsNumber()
-  @Min(10, { message: 'price must be at least 10' })
+  @Min(10, { message: productConstants.priceMustBeAtLeast })
   price: number;
 
-  @IsNotEmpty({ message: 'stock is required' })
+  @IsNotEmpty({ message: productConstants.stockNotEmpty })
   @IsNumber()
-  @Min(1, { message: 'stock must be at least 1' })
+  @Min(1, { message: productConstants.stockMustBeAtLeast })
   stock: number;
 }

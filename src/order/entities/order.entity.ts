@@ -42,6 +42,9 @@ export class Order {
   })
   productOrders: ProductOrder[];
 
+  @Column()
+  total: number;
+
   constructor(entity: Partial<Order>) {
     Object.assign(this, entity);
   }

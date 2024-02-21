@@ -6,6 +6,7 @@ import { ProductOrder } from './entities/product-order.entity';
 import { CreateOrderDto } from './dto';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/auth/entities/user.entity';
+import { authConstants, orderConstants } from 'src/constants/verbose';
 
 @Injectable()
 export class OrderService {
@@ -57,7 +58,7 @@ export class OrderService {
     const productOrders = productsList.map((product) => {
       if (productObjList[product.id] > product.stock) {
         throw new BadRequestException(
-          `product ${product.title} is out of stock`,
+          orderConstants.productOutOfStock(product.title),
         );
       }
 

@@ -1,21 +1,22 @@
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
+import { productConstants } from 'src/constants/verbose';
 
 export class UpdateProductDto {
   @IsOptional()
-  @IsString({ message: 'title must be a string' })
+  @IsString({ message: productConstants.titleMustBeString })
   title: string;
 
   @IsOptional()
-  @IsString({ message: 'description must be a string' })
+  @IsString({ message: productConstants.descriptionMustBeString })
   description: string;
 
   @IsOptional()
   @IsNumber()
-  @Min(10, { message: 'price must be at least 10' })
+  @Min(10, { message: productConstants.priceMustBeAtLeast })
   price: number;
 
   @IsOptional()
   @IsNumber()
-  @Min(1, { message: 'stock must be at least 1' })
+  @Min(1, { message: productConstants.stockMustBeAtLeast })
   stock: number;
 }

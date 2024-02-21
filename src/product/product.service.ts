@@ -10,6 +10,7 @@ import {
   IUpdateProduct,
 } from './interfaces';
 import { User, UserRole } from 'src/auth/entities/user.entity';
+import { productConstants } from 'src/constants/verbose';
 
 @Injectable()
 export class ProductService {
@@ -78,7 +79,7 @@ export class ProductService {
     const { affected } = await this.productRepository.delete({ ...where });
 
     if (affected === 0) {
-      throw new BadRequestException('product not found');
+      throw new BadRequestException(productConstants.productNotFound);
     }
   }
 
@@ -86,10 +87,6 @@ export class ProductService {
     data: UpdateProductDto,
     { productId, userId, role }: IUpdateProduct,
   ) {
-    if (Object.keys(data).length === 0) {
-      throw new BadRequestException('body should not be empty');
-    }
-
     const where = {
       id: productId,
     };
@@ -104,7 +101,7 @@ export class ProductService {
     );
 
     if (affected === 0) {
-      throw new BadRequestException('product not found');
+      throw new BadRequestException(productConstants.productNotFound);
     }
   }
 

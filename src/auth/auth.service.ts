@@ -10,6 +10,7 @@ import { EntityManager, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 import { ICreateUser } from './interfaces';
+import { authConstants } from 'src/constants/verbose';
 
 @Injectable()
 export class AuthService {
@@ -27,7 +28,7 @@ export class AuthService {
     const isUserExist = await this.userRepository.findOneBy({ email });
 
     if (isUserExist) {
-      throw new BadRequestException('email already exist');
+      throw new BadRequestException(authConstants.emailAlreadyExist);
     }
 
     const hashPassword = await bcrypt.hash(password, 10);
@@ -60,13 +61,13 @@ export class AuthService {
     const user = await this.userRepository.findOneBy({ email });
 
     if (!user) {
-      throw new UnauthorizedException('email or password is invalid');
+      throw new UnauthorizedException(authConstants.emailPasswordError);
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
 
     if (!isMatch) {
-      throw new UnauthorizedException('email or password is invalid');
+      throw new UnauthorizedException(authConstants.emailPasswordError);
     }
 
     const payload = {
@@ -88,7 +89,7 @@ export class AuthService {
     const isUserExist = await this.userRepository.findOneBy({ email });
 
     if (isUserExist) {
-      throw new BadRequestException('email already exist');
+      throw new BadRequestException(authConstants.emailAlreadyExist);
     }
 
     const hashPassword = await bcrypt.hash(password, 10);

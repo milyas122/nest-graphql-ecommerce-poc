@@ -1,15 +1,16 @@
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { authConstants } from 'src/constants/verbose';
 
 export class CreateUserDto {
-  @IsNotEmpty({ message: 'email must not empty' })
-  @IsEmail({}, { message: 'email must be a valid email' })
+  @IsNotEmpty({ message: authConstants.emailNotEmpty })
+  @IsEmail({}, { message: authConstants.emailMustBeValid })
   email: string;
 
-  @IsNotEmpty({ message: 'name must not empty' })
-  @IsString({ message: 'name must be a string' })
+  @IsNotEmpty({ message: authConstants.nameNotEmpty })
+  @IsString({ message: authConstants.nameMustBeString })
   name: string;
 
-  @IsNotEmpty({ message: 'password must not empty' })
-  @IsString({ message: 'password must be a string' })
+  @IsNotEmpty({ message: authConstants.passwordNotEmpty })
+  @IsString({ message: authConstants.passwordMustBeString })
   password: string;
 }

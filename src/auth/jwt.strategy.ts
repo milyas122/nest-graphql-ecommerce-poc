@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { IJwtPayload } from 'src/product/interfaces';
+import { authConstants } from 'src/constants/verbose';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -27,7 +28,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const isUser = await this.userRepository.findOneBy({ id: sub });
 
     if (!isUser) {
-      throw new UnauthorizedException('user not found or invalid token');
+      throw new UnauthorizedException(authConstants.userNotFound);
     }
     const userObj: IJwtPayload = {
       id: isUser.id,
