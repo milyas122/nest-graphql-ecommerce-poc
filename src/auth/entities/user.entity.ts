@@ -1,6 +1,7 @@
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+
 import { Order } from 'src/order/entities/order.entity';
 import { Product } from 'src/product/entities/product.entity';
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 export enum UserRole {
   ADMIN = 'admin',

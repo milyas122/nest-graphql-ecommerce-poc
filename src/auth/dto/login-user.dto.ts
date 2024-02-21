@@ -1,4 +1,5 @@
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+
 import { authConstants } from 'src/constants/verbose';
 
 export class LoginDto {

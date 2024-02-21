@@ -1,3 +1,5 @@
+import { UserRole } from 'src/auth/entities/user.entity';
+
 export const authConstants = {
   emailNotEmpty: 'email must not empty',
   emailMustBeValid: 'email must be a valid email',
@@ -8,4 +10,5 @@ export const authConstants = {
   emailAlreadyExist: 'email already exist',
   emailPasswordError: 'email or password is invalid',
   userNotFound: 'user not found',
+  roleMustBeValid: `role should be one of these ${Object.values(UserRole).join(', ')}`,
 };
