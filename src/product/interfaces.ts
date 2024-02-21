@@ -7,12 +7,22 @@ export interface IJwtPayload {
   role: UserRole;
 }
 
-export interface IGetProductDetail {
+export interface IUpdateProduct {
   productId: string;
   userId: string;
   role: UserRole;
 }
 
-export interface IRemoveProduct extends IGetProductDetail {}
+export interface IRemoveProduct extends IUpdateProduct {}
 
-export interface IUpdateProduct extends IGetProductDetail {}
+export interface ICreateProductResponse {
+  id: string;
+  title: string;
+  description: string;
+  price: number;
+  stock: number;
+}
+
+export interface IGetProductDetailResponse extends ICreateProductResponse {
+  seller: IJwtPayload;
+}

@@ -1,5 +1,3 @@
-import { User } from 'src/auth/entities/user.entity';
-import { ProductOrder } from 'src/order/entities/product-order.entity';
 import {
   Column,
   Entity,
@@ -7,6 +5,9 @@ import {
   OneToMany,
   PrimaryGeneratedColumn,
 } from 'typeorm';
+
+import { User } from 'src/auth/entities/user.entity';
+import { ProductOrder } from 'src/order/entities/product-order.entity';
 
 @Entity()
 export class Product {

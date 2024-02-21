@@ -1,5 +1,7 @@
 import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
+
 import { productConstants } from 'src/constants/verbose';
+
 export class CreateProductDto {
   @IsNotEmpty({ message: productConstants.titleNotEmpty })
   @IsString({ message: productConstants.titleMustBeString })

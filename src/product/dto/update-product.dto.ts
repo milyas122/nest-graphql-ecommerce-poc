@@ -1,4 +1,5 @@
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
+
 import { productConstants } from 'src/constants/verbose';
 
 export class UpdateProductDto {

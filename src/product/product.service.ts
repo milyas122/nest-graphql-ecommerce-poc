@@ -1,10 +1,12 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { EntityManager, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { EntityManager, Repository } from 'typeorm';
+
 import { Product } from './entities/product.entity';
 import { CreateProductDto, UpdateProductDto } from './dto';
 import {
-  IGetProductDetail,
+  ICreateProductResponse,
+  IGetProductDetailResponse,
   IJwtPayload,
   IRemoveProduct,
   IUpdateProduct,
@@ -22,23 +24,31 @@ export class ProductService {
     private readonly entityManager: EntityManager,
   ) {}
 
-  async createProduct(data: CreateProductDto, user: IJwtPayload) {
+  /**
+   * Create a new product using the provided data and user information.
+   *
+   * @param {CreateProductDto} data - the data for creating the product
+   * @param {IJwtPayload} user - the user object
+   * @return {Promise<ICreateProductResponse>} the newly created product
+   */
+  async createProduct(
+    data: CreateProductDto,
+    user: IJwtPayload,
+  ): Promise<ICreateProductResponse> {
     const seller = await this.getSellerObj(user.id);
-
     const product = new Product({
       seller,
       ...data,
     });
-
     await this.entityManager.save(product);
-    return product;
+    const { seller: sellerObj, ...newProduct } = product;
+    return newProduct;
   }
 
   async getProducts(userId: string, role: string) {
     if (role === 'admin') {
       return await this.productRepository.find();
     }
-
     return await this.productRepository.find({
       where: {
         seller: {
@@ -48,23 +58,28 @@ export class ProductService {
     });
   }
 
-  async getProductDetail({ productId, userId, role }: IGetProductDetail) {
-    const where = {
-      id: productId,
-    };
-
-    if (role === UserRole.SELLER) {
-      where['seller'] = { id: userId };
-    }
-
+  /**
+   * Retrieves product details by ID.
+   *
+   * @param {string} id - The ID of the product
+   * @return {Promise<IGetProductDetailResponse>} Return an object with the product details
+   */
+  async getProductDetail(id: string): Promise<IGetProductDetailResponse> {
     const product = await this.productRepository.findOne({
-      where: { ...where },
+      where: {
+        id,
+      },
+      relations: ['seller'],
     });
-
     if (!product) {
-      throw new BadRequestException('product not found');
+      throw new BadRequestException(productConstants.productNotFound);
     }
-    return product;
+    const { seller, ...result } = product;
+    const { password, ...sellerWithoutPassword } = seller;
+    return {
+      ...result,
+      seller: sellerWithoutPassword,
+    };
   }
 
   async removeProduct({ productId, userId, role }: IRemoveProduct) {
