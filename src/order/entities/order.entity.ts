@@ -1,4 +1,3 @@
-import { User } from 'src/auth/entities/user.entity';
 import {
   Column,
   CreateDateColumn,
@@ -8,6 +7,8 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
+
+import { User } from 'src/auth/entities/user.entity';
 import { ProductOrder } from './product-order.entity';
 
 export enum OrderStatus {
@@ -41,9 +42,6 @@ export class Order {
     cascade: true,
   })
   productOrders: ProductOrder[];
-
-  @Column()
-  total: number;
 
   constructor(entity: Partial<Order>) {
     Object.assign(this, entity);

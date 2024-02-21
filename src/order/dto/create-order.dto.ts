@@ -1,5 +1,6 @@
 import { IsArray, IsNotEmpty, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
+
 import { orderConstants } from 'src/constants/verbose';
 
 class ProductOrderItemDto {

@@ -1,12 +1,14 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Order, OrderStatus } from './entities/order.entity';
 import { EntityManager, In, Repository } from 'typeorm';
+
+import { Order, OrderStatus } from './entities/order.entity';
 import { ProductOrder } from './entities/product-order.entity';
 import { CreateOrderDto } from './dto';
 import { Product } from 'src/product/entities/product.entity';
 import { User } from 'src/auth/entities/user.entity';
-import { authConstants, orderConstants } from 'src/constants/verbose';
+import { orderConstants } from 'src/constants/verbose';
+import { IOrderResponse } from './interfaces';
 
 @Injectable()
 export class OrderService {
@@ -22,11 +24,20 @@ export class OrderService {
     private readonly entityManager: EntityManager,
   ) {}
 
-  async createOrder({ products }: CreateOrderDto, userId: string) {
+  /**
+   * Create an order with the given products for a specific user.
+   *
+   * @param {CreateOrderDto} products - the products to be included in the order
+   * @param {string} userId - the id of the user placing the order
+   * @return {Promise<IOrderResponse>} the response containing the created order details
+   */
+  async createOrder(
+    { products }: CreateOrderDto,
+    userId: string,
+  ): Promise<IOrderResponse> {
     const productOrders = await this._checkProductInventory({ products });
     const buyer = await this.userRepository.findOneBy({ id: userId });
     const orderNo = await this._generateOrderNumber();
-
     const order = new Order({
       order_id: orderNo,
       status: OrderStatus.PROCESSING,
@@ -34,10 +45,12 @@ export class OrderService {
       buyer,
     });
     await this.entityManager.save(order);
-
-    const { buyer: buyerObj, ...result } = order;
-
-    return { buyer: buyerObj.id, ...result };
+    const {
+      buyer: buyerObj,
+      productOrders: productOrdersObj,
+      ...result
+    } = order;
+    return result;
   }
 
   private async _checkProductInventory({ products }: CreateOrderDto) {
