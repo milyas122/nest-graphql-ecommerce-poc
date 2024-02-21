@@ -1,8 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { config } from 'dotenv';
 import { DataSource } from 'typeorm';
-import { User } from '../auth/entities/user.entity';
-import { Product } from '../product/entities/product.entity';
 
 config();
 
@@ -15,7 +13,6 @@ export default new DataSource({
   username: configService.getOrThrow('POSTGRES_USER'),
   password: configService.getOrThrow('POSTGRES_PASSWORD'),
   database: configService.getOrThrow('POSTGRES_DB'),
-  migrations: ['migrations/**'],
+  migrations: ['src/migrations/**'],
   entities: ['src/**/*.entity{.ts,.js}'],
-  // entities: [User, Product],
 });
