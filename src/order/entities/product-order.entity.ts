@@ -13,7 +13,9 @@ export class ProductOrder {
   @Column({ type: 'decimal' })
   total_price: number;
 
-  @ManyToOne(() => Product, (product) => product.productOrders)
+  @ManyToOne(() => Product, (product) => product.productOrders, {
+    cascade: true,
+  })
   product: Product;
 
   @ManyToOne(() => Order, (order) => order.productOrders)

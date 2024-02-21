@@ -22,11 +22,9 @@ export class OrderService {
   ) {}
 
   async createOrder({ products }: CreateOrderDto, userId: string) {
-    const productOrders = await this.checkProductInventory({ products });
-
+    const productOrders = await this._checkProductInventory({ products });
     const buyer = await this.userRepository.findOneBy({ id: userId });
-
-    const orderNo = await this.generateOrderNumber();
+    const orderNo = await this._generateOrderNumber();
 
     const order = new Order({
       order_id: orderNo,
@@ -34,7 +32,6 @@ export class OrderService {
       productOrders,
       buyer,
     });
-
     await this.entityManager.save(order);
 
     const { buyer: buyerObj, ...result } = order;
@@ -42,7 +39,7 @@ export class OrderService {
     return { buyer: buyerObj.id, ...result };
   }
 
-  private async checkProductInventory({ products }: CreateOrderDto) {
+  private async _checkProductInventory({ products }: CreateOrderDto) {
     const productIds = products.map(({ productId }) => productId);
 
     const productsList = await this.productRepository.find({
@@ -63,6 +60,10 @@ export class OrderService {
           `product ${product.title} is out of stock`,
         );
       }
+
+      // Update product inventory
+      product.stock -= productObjList[product.id]; // stock - quantity
+
       return new ProductOrder({
         product,
         quantity: productObjList[product.id], // get quantity from productObjList
@@ -73,11 +74,7 @@ export class OrderService {
     return productOrders;
   }
 
-  private async generateOrderNumber() {
-    const randomString = Math.random().toString(36).slice(-8);
-    const timestamp = Date.now();
-    const orderNumber = `order-${timestamp}-${randomString}`;
-
-    return orderNumber;
+  private async _generateOrderNumber() {
+    return `order-${Date.now()}-${Math.random().toString(36).slice(-8)}`;
   }
 }
