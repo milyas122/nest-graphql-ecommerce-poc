@@ -72,32 +72,49 @@ export class ProductController {
     });
   }
 
+  /**
+   * Remove a specific product.
+   *
+   * @param {string} id - the ID (string uuid) of the product to be removed
+   * @param {Request} req - the request object
+   * @return {Promise<SuccessResponse>} an object with a message, statusCode, and data
+   */
   @Delete(':id')
   @UseGuards(JwtAuthGuard, AdminSellerGuard)
   async removeProduct(
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: Request,
-  ) {
+  ): Promise<SuccessResponse> {
     const { id: userId, role } = req.user as IJwtPayload;
-
-    await this.productService.removeProduct({ productId: id, userId, role });
-
-    return { message: 'product deleted successfully' };
+    const { message } = await this.productService.removeProduct({
+      productId: id,
+      userId,
+      role,
+    });
+    return { message, statusCode: HttpStatus.OK, data: [] };
   }
 
+  /**
+   * Update a product with the given ID.
+   *
+   * @param {string} id - The ID (uuid) of the product to be updated
+   * @param {UpdateProductDto} data - The data to update the product with
+   * @param {Request} req - The request object
+   * @return {Promise<SuccessResponse>} A promise that resolves to a success response
+   */
   @Patch(':id')
   @UseGuards(JwtAuthGuard, AdminSellerGuard)
   async updateProduct(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() data: UpdateProductDto,
     @Req() req: Request,
-  ) {
+  ): Promise<SuccessResponse> {
     const { id: userId, role } = req.user as IJwtPayload;
-
-    return await this.productService.updateProduct(data, {
+    const { message } = await this.productService.updateProduct(data, {
       productId: id,
       role,
       userId,
     });
+    return { message, statusCode: HttpStatus.OK, data: [] };
   }
 }

@@ -82,45 +82,59 @@ export class ProductService {
     };
   }
 
-  async removeProduct({ productId, userId, role }: IRemoveProduct) {
+  /**
+   * Remove a product based on the provided data.
+   *
+   * @param {IRemoveProduct} data - the data object containing productId, userId, and role
+   * @return {Promise<{ message: string }>} a promise that resolves to an object with a message property
+   */
+  async removeProduct(data: IRemoveProduct): Promise<{ message: string }> {
+    const { productId, userId, role } = data;
     const where = {
       id: productId,
     };
-
+    // Check product owner because admin has also a right to remove products
     if (role === UserRole.SELLER) {
       where['seller'] = { id: userId };
     }
-
     const { affected } = await this.productRepository.delete({ ...where });
-
     if (affected === 0) {
       throw new BadRequestException(productConstants.productNotFound);
     }
+    return {
+      message: 'product deleted successfully',
+    };
   }
 
+  /**
+   * Update a product with the provided data.
+   *
+   * @param {UpdateProductDto} updateDto - the data to update the product
+   * @param {IUpdateProduct} data - an object containing the productId, userId and role for updating the product
+   * @return {Promise<{ message: string }>} a message indicating the success of the update
+   */
   async updateProduct(
-    data: UpdateProductDto,
-    { productId, userId, role }: IUpdateProduct,
-  ) {
+    updateDto: UpdateProductDto,
+    data: IUpdateProduct,
+  ): Promise<{ message: string }> {
+    const { productId, userId, role } = data;
     const where = {
       id: productId,
     };
-
     if (role === UserRole.SELLER) {
       where['seller'] = { id: userId };
     }
-
-    const { affected } = await this.productRepository.update(
-      { ...where },
-      { ...data },
-    );
-
+    const { affected } = await this.productRepository.update(where, updateDto);
     if (affected === 0) {
       throw new BadRequestException(productConstants.productNotFound);
     }
+    return {
+      message: 'product updated successfully',
+    };
   }
 
   // get seller object
+  //  get it from user services instead of user repository
   private async getSellerObj(id: string) {
     return await this.userRepository.findOneBy({ id });
   }
