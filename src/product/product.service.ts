@@ -7,6 +7,7 @@ import { CreateProductDto, UpdateProductDto } from './dto';
 import {
   ICreateProductResponse,
   IGetProductDetailResponse,
+  IGetProductList,
   IJwtPayload,
   IRemoveProduct,
   IUpdateProduct,
@@ -14,6 +15,7 @@ import {
 import { UserRole } from 'src/auth/entities/user.entity';
 import { productConstants } from 'src/constants/verbose';
 import { AuthService } from 'src/auth/auth.service';
+import { take } from 'rxjs';
 
 @Injectable()
 export class ProductService {
@@ -45,17 +47,24 @@ export class ProductService {
     return newProduct;
   }
 
-  async getProducts(userId: string, role: string) {
-    if (role === 'admin') {
-      return await this.productRepository.find();
-    }
-    return await this.productRepository.find({
-      where: {
-        seller: {
-          id: userId,
-        },
-      },
+  /**
+   * Retrieves a list of products based on the specified page number.
+   *
+   * @param {number} pageNo - The page number for the product list
+   * @return {Promise<IGetProductList>} An object containing the list of products, the total number of pages, and the total number of products
+   */
+  async getProducts(pageNo: number): Promise<IGetProductList> {
+    const take = 4;
+    const skip = (pageNo - 1) * take;
+    const result = await this.productRepository.findAndCount({
+      take,
+      skip,
     });
+    return {
+      products: result[0],
+      pages: Math.ceil(result[1] / take),
+      total: result[1],
+    };
   }
 
   /**

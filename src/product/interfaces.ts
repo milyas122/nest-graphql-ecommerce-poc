@@ -1,4 +1,5 @@
 import { UserRole } from 'src/auth/entities/user.entity';
+import { Product } from './entities/product.entity';
 
 export interface IJwtPayload {
   id: string;
@@ -25,4 +26,10 @@ export interface ICreateProductResponse {
 
 export interface IGetProductDetailResponse extends ICreateProductResponse {
   seller: IJwtPayload;
+}
+
+export interface IGetProductList {
+  pages: number;
+  total: number;
+  products: Product[];
 }

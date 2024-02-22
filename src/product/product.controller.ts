@@ -5,9 +5,11 @@ import {
   Get,
   HttpStatus,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Patch,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -48,14 +50,21 @@ export class ProductController {
     });
   }
 
-  // pagination
-  // should be public
+  /**
+   * Get a list of products
+   *
+   * @param {number} page - the page number
+   * @return {Promise<SuccessResponse>} the success response
+   */
   @Get()
-  @UseGuards(JwtAuthGuard)
-  async getProducts(@Req() req: Request) {
-    const { id: userId, role } = req.user as IJwtPayload;
-
-    return this.productService.getProducts(userId, role);
+  async getProducts(
+    @Query('page', ParseIntPipe) page: number,
+  ): Promise<SuccessResponse> {
+    const products = await this.productService.getProducts(page);
+    return sendSuccessResponse({
+      statusCode: HttpStatus.OK,
+      data: products,
+    });
   }
 
   /**
