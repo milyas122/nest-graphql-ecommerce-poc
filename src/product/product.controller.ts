@@ -16,8 +16,10 @@ import { Request } from 'express';
 import { ProductService } from './product.service';
 import { CreateProductDto, UpdateProductDto } from './dto';
 import { IJwtPayload } from './interfaces';
-import { AdminSellerGuard, JwtAuthGuard, SellerGuard } from 'src/guards';
+import { JwtAuthGuard, RolesGuard } from 'src/guards';
 import { SuccessResponse, sendSuccessResponse } from 'src/utils';
+import { Roles } from 'src/roles.decorator';
+import { UserRole } from 'src/auth/entities/user.entity';
 
 @Controller('products')
 export class ProductController {
@@ -31,7 +33,8 @@ export class ProductController {
    * @return {Promise<SuccessResponse>} the success response
    */
   @Post()
-  @UseGuards(JwtAuthGuard, SellerGuard)
+  @Roles(UserRole.SELLER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async createProduct(
     @Body() data: CreateProductDto,
     @Req() req: Request,
@@ -80,7 +83,8 @@ export class ProductController {
    * @return {Promise<SuccessResponse>} an object with a message, statusCode, and data
    */
   @Delete(':id')
-  @UseGuards(JwtAuthGuard, AdminSellerGuard)
+  @Roles(UserRole.SELLER, UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async removeProduct(
     @Param('id', ParseUUIDPipe) id: string,
     @Req() req: Request,
@@ -103,7 +107,8 @@ export class ProductController {
    * @return {Promise<SuccessResponse>} A promise that resolves to a success response
    */
   @Patch(':id')
-  @UseGuards(JwtAuthGuard, AdminSellerGuard)
+  @Roles(UserRole.SELLER, UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async updateProduct(
     @Param('id', ParseUUIDPipe) id: string,
     @Body() data: UpdateProductDto,

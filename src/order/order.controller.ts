@@ -11,8 +11,10 @@ import { Request } from 'express';
 import { CreateOrderDto } from './dto';
 import { OrderService } from './order.service';
 import { IJwtPayload } from 'src/product/interfaces';
-import { BuyerGuard, JwtAuthGuard } from 'src/guards';
+import { JwtAuthGuard, RolesGuard } from 'src/guards';
 import { SuccessResponse, sendSuccessResponse } from 'src/utils';
+import { Roles } from 'src/roles.decorator';
+import { UserRole } from 'src/auth/entities/user.entity';
 
 @Controller('orders')
 export class OrderController {
@@ -26,7 +28,8 @@ export class OrderController {
    * @return {Promise<SuccessResponse>} success response with the created order data details
    */
   @Post()
-  @UseGuards(JwtAuthGuard, BuyerGuard)
+  @Roles(UserRole.BUYER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   async createOrder(
     @Body() data: CreateOrderDto,
     @Req() req: Request,
