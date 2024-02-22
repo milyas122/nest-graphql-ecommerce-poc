@@ -48,7 +48,7 @@ export class ProductController {
   // pagination
   // should be public
   @Get()
-  @UseGuards(JwtAuthGuard, AdminSellerGuard)
+  @UseGuards(JwtAuthGuard)
   async getProducts(@Req() req: Request) {
     const { id: userId, role } = req.user as IJwtPayload;
 
