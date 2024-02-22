@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Get,
   HttpStatus,
+  Param,
+  ParseUUIDPipe,
   Post,
   Req,
   UseGuards,
@@ -39,6 +42,30 @@ export class OrderController {
     return sendSuccessResponse({
       statusCode: HttpStatus.CREATED,
       data: result,
+    });
+  }
+
+  /**
+   * Cancels an order.
+   *
+   * @param {string} id - the id of the order to be canceled
+   * @return {Promise<SuccessResponse>} success response with the cancelled order detail
+   */
+  @Get(':id/cancel') // Code review question regarding request method
+  @UseGuards(JwtAuthGuard)
+  async cancelOrder(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: Request,
+  ): Promise<SuccessResponse> {
+    const { id: userId, role } = req.user as IJwtPayload;
+    const order = await this.orderService.cancelOrder({
+      orderId: id,
+      userId,
+      role,
+    });
+    return sendSuccessResponse({
+      statusCode: HttpStatus.OK,
+      data: order,
     });
   }
 }

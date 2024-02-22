@@ -6,9 +6,10 @@ import { Order, OrderStatus } from './entities/order.entity';
 import { ProductOrder } from './entities/product-order.entity';
 import { CreateOrderDto } from './dto';
 import { orderConstants } from 'src/constants/verbose';
-import { IOrderResponse } from './interfaces';
+import { ICancelOrder, IOrderResponse } from './interfaces';
 import { AuthService } from 'src/auth/auth.service';
 import { ProductService } from 'src/product/product.service';
+import { UserRole } from 'src/auth/entities/user.entity';
 
 @Injectable()
 export class OrderService {
@@ -48,6 +49,33 @@ export class OrderService {
       ...result
     } = order;
     return result;
+  }
+
+  /**
+   * Cancels an order by its ID.
+   *
+   * @param {string} orderId - the ID of the order to be cancelled
+   * @return {Promise<Order>} the cancelled order object
+   */
+  async cancelOrder({ orderId, userId, role }: ICancelOrder): Promise<Order> {
+    const where = { id: orderId };
+    if ((role = UserRole.BUYER)) {
+      where['buyer'] = { id: userId };
+    }
+    const order = await this.orderRepository.findOne({
+      where,
+    });
+    if (!order) {
+      throw new BadRequestException(orderConstants.orderNotFound);
+    }
+    if (order.status != OrderStatus.PROCESSING) {
+      throw new BadRequestException(
+        orderConstants.orderCanNotBeCancelled(order.order_id),
+      );
+    }
+    order.status = OrderStatus.CANCELLED;
+    await this.orderRepository.save(order);
+    return order;
   }
 
   /**
