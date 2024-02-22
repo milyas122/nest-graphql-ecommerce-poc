@@ -94,4 +94,8 @@ export class AuthService {
   private async _generateToken(payload: ICreateUser): Promise<string> {
     return await this.jwtService.signAsync(payload);
   }
+
+  async findOneBy(where: Partial<User>) {
+    return await this.userRepository.findOneBy({ ...where });
+  }
 }

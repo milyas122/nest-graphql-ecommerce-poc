@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { EntityManager, In, Repository } from 'typeorm';
 
 import { Product } from './entities/product.entity';
 import { CreateProductDto, UpdateProductDto } from './dto';
@@ -11,14 +11,14 @@ import {
   IRemoveProduct,
   IUpdateProduct,
 } from './interfaces';
-import { User, UserRole } from 'src/auth/entities/user.entity';
+import { UserRole } from 'src/auth/entities/user.entity';
 import { productConstants } from 'src/constants/verbose';
+import { AuthService } from 'src/auth/auth.service';
 
 @Injectable()
 export class ProductService {
   constructor(
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
+    private readonly authService: AuthService,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
     private readonly entityManager: EntityManager,
@@ -35,7 +35,7 @@ export class ProductService {
     data: CreateProductDto,
     user: IJwtPayload,
   ): Promise<ICreateProductResponse> {
-    const seller = await this.getSellerObj(user.id);
+    const seller = await this.authService.findOneBy({ id: user.id });
     const product = new Product({
       seller,
       ...data,
@@ -133,9 +133,17 @@ export class ProductService {
     };
   }
 
-  // get seller object
-  //  get it from user services instead of user repository
-  private async getSellerObj(id: string) {
-    return await this.userRepository.findOneBy({ id });
+  /**
+   * Retrieves products by their IDs.
+   *
+   * @param {string[]} ids - array of product IDs
+   * @return {Promise<Product[]>} Promise that resolves to an array of products
+   */
+  async getProductsByIds(ids: string[]): Promise<Product[]> {
+    return await this.productRepository.find({
+      where: {
+        id: In(ids),
+      },
+    });
   }
 }

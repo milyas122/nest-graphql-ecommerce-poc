@@ -1,4 +1,9 @@
-import { IsArray, IsNotEmpty, ValidateNested } from 'class-validator';
+import {
+  IsArray,
+  IsNotEmpty,
+  IsPositive,
+  ValidateNested,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 import { orderConstants } from 'src/constants/verbose';
@@ -8,6 +13,7 @@ class ProductOrderItemDto {
   productId: string;
 
   @IsNotEmpty({ message: orderConstants.quantityNotEmpty })
+  @IsPositive({ message: orderConstants.quantityMustBeAtLeastOne })
   quantity: number = 1;
 }
 

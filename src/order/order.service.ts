@@ -1,26 +1,24 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, In, Repository } from 'typeorm';
+import { EntityManager, Repository } from 'typeorm';
 
 import { Order, OrderStatus } from './entities/order.entity';
 import { ProductOrder } from './entities/product-order.entity';
 import { CreateOrderDto } from './dto';
-import { Product } from 'src/product/entities/product.entity';
-import { User } from 'src/auth/entities/user.entity';
 import { orderConstants } from 'src/constants/verbose';
 import { IOrderResponse } from './interfaces';
+import { AuthService } from 'src/auth/auth.service';
+import { ProductService } from 'src/product/product.service';
 
 @Injectable()
 export class OrderService {
   constructor(
+    private readonly authService: AuthService,
+    private readonly productService: ProductService,
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
     @InjectRepository(ProductOrder)
     private readonly productOrderRepository: Repository<ProductOrder>,
-    @InjectRepository(Product)
-    private readonly productRepository: Repository<Product>,
-    @InjectRepository(User)
-    private readonly userRepository: Repository<User>,
     private readonly entityManager: EntityManager,
   ) {}
 
@@ -36,7 +34,7 @@ export class OrderService {
     userId: string,
   ): Promise<IOrderResponse> {
     const productOrders = await this._checkProductInventory({ products });
-    const buyer = await this.userRepository.findOneBy({ id: userId });
+    const buyer = await this.authService.findOneBy({ id: userId });
     const orderNo = await this._generateOrderNumber();
     const order = new Order({
       order_id: orderNo,
@@ -53,20 +51,21 @@ export class OrderService {
     return result;
   }
 
+  /**
+   * Check product inventory before creating an order and update product inventory.
+   *
+   * @param {CreateOrderDto} products - object containing products for the order
+   * @return {Promise<ProductOrder[]>} list of product orders
+   */
   private async _checkProductInventory({ products }: CreateOrderDto) {
     const productIds = products.map(({ productId }) => productId);
-
-    const productsList = await this.productRepository.find({
-      where: { id: In(productIds) },
-    });
-
+    const productsList = await this.productService.getProductsByIds(productIds);
     const productObjList = products.reduce((acc, { productId, quantity }) => {
       if (!acc[productId]) {
         acc[productId] = quantity;
       }
       return acc;
     }, {});
-
     // check product inventory before creating an order
     const productOrders = productsList.map((product) => {
       if (productObjList[product.id] > product.stock) {
@@ -74,21 +73,23 @@ export class OrderService {
           orderConstants.productOutOfStock(product.title),
         );
       }
-
       // Update product inventory
       product.stock -= productObjList[product.id]; // stock - quantity
-
       return new ProductOrder({
         product,
         quantity: productObjList[product.id], // get quantity from productObjList
         total_price: product.price * productObjList[product.id],
       });
     });
-
     return productOrders;
   }
 
-  private async _generateOrderNumber() {
+  /**
+   * A function to generate a unique order number.
+   *
+   * @return {string} the generated order number
+   */
+  private async _generateOrderNumber(): Promise<string> {
     return `order-${Date.now()}-${Math.random().toString(36).slice(-8)}`;
   }
 }
