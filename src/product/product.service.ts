@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, In, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 
 import { Product } from './entities/product.entity';
 import { CreateProductDto, UpdateProductDto } from './dto';
@@ -15,7 +15,6 @@ import {
 import { UserRole } from 'src/auth/entities/user.entity';
 import { productConstants } from 'src/constants/verbose';
 import { AuthService } from 'src/auth/auth.service';
-import { take } from 'rxjs';
 
 @Injectable()
 export class ProductService {
@@ -23,7 +22,6 @@ export class ProductService {
     private readonly authService: AuthService,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
-    private readonly entityManager: EntityManager,
   ) {}
 
   /**
@@ -42,7 +40,7 @@ export class ProductService {
       seller,
       ...data,
     });
-    await this.entityManager.save(product);
+    await this.productRepository.save(product);
     const { seller: sellerObj, ...newProduct } = product;
     return newProduct;
   }
