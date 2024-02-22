@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 import { Order, OrderStatus } from './entities/order.entity';
 import { ProductOrder } from './entities/product-order.entity';
@@ -19,7 +19,6 @@ export class OrderService {
     private readonly orderRepository: Repository<Order>,
     @InjectRepository(ProductOrder)
     private readonly productOrderRepository: Repository<ProductOrder>,
-    private readonly entityManager: EntityManager,
   ) {}
 
   /**
@@ -42,7 +41,7 @@ export class OrderService {
       productOrders,
       buyer,
     });
-    await this.entityManager.save(order);
+    await this.orderRepository.save(order);
     const {
       buyer: buyerObj,
       productOrders: productOrdersObj,
