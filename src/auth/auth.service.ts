@@ -31,18 +31,13 @@ export class AuthService {
     user: ICreateUser;
     access_token: string;
   }> {
-    const { email, name, password, role } = data;
-    const isUserExist = await this.userRepository.findOneBy({ email });
+    const isUserExist = await this.userRepository.findOneBy({
+      email: data.email,
+    });
     if (isUserExist) {
       throw new BadRequestException(authConstants.emailAlreadyExist);
     }
-    const hashPassword = await bcrypt.hash(password, 10);
-    const user = new User({
-      email,
-      name,
-      role,
-      password: hashPassword,
-    });
+    const user = new User(data);
     await this.entityManager.save(user);
     const payload = {
       sub: user.id,
