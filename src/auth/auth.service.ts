@@ -4,12 +4,12 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
 import { CreateUserDto, LoginDto } from './dto';
-import { User } from './entities/user.entity';
+import { User, UserRole } from './entities/user.entity';
 import { ICreateUser } from './interfaces';
 import { authConstants } from 'src/constants/verbose';
 
@@ -91,5 +91,11 @@ export class AuthService {
 
   async findOneBy(where: Partial<User>) {
     return await this.userRepository.findOneBy({ ...where });
+  }
+
+  async findSellerByIds(ids: string[]) {
+    return await this.userRepository.find({
+      where: { id: In(ids), role: UserRole.SELLER },
+    });
   }
 }

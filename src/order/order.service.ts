@@ -33,13 +33,18 @@ export class OrderService {
     { products }: CreateOrderDto,
     userId: string,
   ): Promise<IOrderResponse> {
-    const productOrders = await this._checkProductInventory({ products });
+    const { sellerIds, productOrders } = await this._updateProductInventory({
+      products,
+    });
     const buyer = await this.authService.findOneBy({ id: userId });
-    const orderNo = await this._generateOrderNumber();
+    const sellers = await this.authService.findSellerByIds(sellerIds);
+    const orders = sellers.map((seller) => {
+      let orderNo = this._generateOrderNumber();
+    });
     const order = new Order({
       order_id: orderNo,
       status: OrderStatus.PROCESSING,
-      productOrders,
+      // productOrders,
       buyer,
     });
     await this.orderRepository.save(order);
@@ -49,6 +54,44 @@ export class OrderService {
       ...result
     } = order;
     return result;
+  }
+
+  /**
+   * Check product inventory before creating an order and update product inventory.
+   *
+   * @param {CreateOrderDto} products - object containing products for the order
+   * @return {Promise<ProductOrder[]>} list of product orders
+   */
+  private async _updateProductInventory({ products }: CreateOrderDto) {
+    const productIds = products.map(({ productId }) => productId);
+    const productsList = await this.productService.getProductsByIds(productIds);
+    const productObjList = products.reduce((acc, { productId, quantity }) => {
+      if (!acc[productId]) {
+        acc[productId] = { quantity };
+      }
+      return acc;
+    }, {});
+    const sellerIds = [];
+    const isSellerExist = new Map<string, string>();
+    // check product inventory before creating an order
+    const productOrders = productsList.map((product) => {
+      if (productObjList[product.id].quantity > product.stock) {
+        throw new BadRequestException(
+          orderConstants.productOutOfStock(product.title),
+        );
+      }
+      if (!isSellerExist.has(productObjList[product.id].sellerId)) {
+        sellerIds.push(product.seller.id);
+      }
+      // Update product inventory
+      product.stock -= productObjList[product.id].quantity;
+      return new ProductOrder({
+        product,
+        quantity: productObjList[product.id].quantity,
+        total_price: product.price * productObjList[product.id],
+      });
+    });
+    return { productOrders, sellerIds };
   }
 
   /**
@@ -79,44 +122,11 @@ export class OrderService {
   }
 
   /**
-   * Check product inventory before creating an order and update product inventory.
-   *
-   * @param {CreateOrderDto} products - object containing products for the order
-   * @return {Promise<ProductOrder[]>} list of product orders
-   */
-  private async _checkProductInventory({ products }: CreateOrderDto) {
-    const productIds = products.map(({ productId }) => productId);
-    const productsList = await this.productService.getProductsByIds(productIds);
-    const productObjList = products.reduce((acc, { productId, quantity }) => {
-      if (!acc[productId]) {
-        acc[productId] = quantity;
-      }
-      return acc;
-    }, {});
-    // check product inventory before creating an order
-    const productOrders = productsList.map((product) => {
-      if (productObjList[product.id] > product.stock) {
-        throw new BadRequestException(
-          orderConstants.productOutOfStock(product.title),
-        );
-      }
-      // Update product inventory
-      product.stock -= productObjList[product.id]; // stock - quantity
-      return new ProductOrder({
-        product,
-        quantity: productObjList[product.id], // get quantity from productObjList
-        total_price: product.price * productObjList[product.id],
-      });
-    });
-    return productOrders;
-  }
-
-  /**
    * A function to generate a unique order number.
    *
    * @return {string} the generated order number
    */
-  private async _generateOrderNumber(): Promise<string> {
+  private _generateOrderNumber(): string {
     return `order-${Date.now()}-${Math.random().toString(36).slice(-8)}`;
   }
 }
