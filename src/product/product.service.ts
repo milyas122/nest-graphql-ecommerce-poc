@@ -60,7 +60,8 @@ export class ProductService {
     });
     return {
       products: result[0],
-      pages: Math.ceil(result[1] / take),
+      current_page: pageNo,
+      total_pages: Math.ceil(result[1] / take),
       total: result[1],
     };
   }

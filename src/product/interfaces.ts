@@ -29,7 +29,8 @@ export interface IGetProductDetailResponse extends ICreateProductResponse {
 }
 
 export interface IGetProductList {
-  pages: number;
+  current_page: number;
+  total_pages: number;
   total: number;
   products: Product[];
 }

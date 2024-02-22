@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   HttpStatus,
@@ -58,7 +59,7 @@ export class ProductController {
    */
   @Get()
   async getProducts(
-    @Query('page', ParseIntPipe) page: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
   ): Promise<SuccessResponse> {
     const products = await this.productService.getProducts(page);
     return sendSuccessResponse({
