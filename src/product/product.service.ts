@@ -57,6 +57,15 @@ export class ProductService {
     const result = await this.productRepository.findAndCount({
       take,
       skip,
+      relations: {
+        seller: true,
+      },
+      select: {
+        seller: {
+          id: true,
+          name: true,
+        },
+      },
     });
     return {
       products: result[0],
