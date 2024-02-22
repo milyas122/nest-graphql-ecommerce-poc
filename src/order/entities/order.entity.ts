@@ -35,8 +35,11 @@ export class Order {
   @UpdateDateColumn()
   updated_at: Date;
 
-  @ManyToOne(() => User, (user) => user.orders)
+  @ManyToOne(() => User, (user) => user.buyerOrders)
   buyer: User;
+
+  @ManyToOne(() => User, (user) => user.sellerOrders)
+  seller: User;
 
   @OneToMany(() => ProductOrder, (productOrder) => productOrder.order, {
     cascade: true,
