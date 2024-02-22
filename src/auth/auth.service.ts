@@ -4,7 +4,7 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { EntityManager, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
@@ -17,7 +17,6 @@ import { authConstants } from 'src/constants/verbose';
 export class AuthService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    private readonly entityManager: EntityManager,
     private jwtService: JwtService,
   ) {}
 
@@ -38,7 +37,7 @@ export class AuthService {
       throw new BadRequestException(authConstants.emailAlreadyExist);
     }
     const user = new User(data);
-    await this.entityManager.save(user);
+    await this.userRepository.save(user);
     const payload = {
       sub: user.id,
       email: user.email,
