@@ -120,8 +120,8 @@ export class OrderService {
    */
   async cancelOrder({ orderId, userId, role }: ICancelOrder): Promise<Order> {
     const where = { id: orderId };
-    if ((role = UserRole.BUYER)) {
-      where['buyer'] = { id: userId };
+    if (role != UserRole.ADMIN) {
+      where[role] = { id: userId }; // seller or buyer specific
     }
     const order = await this.orderRepository.findOne({
       where,
