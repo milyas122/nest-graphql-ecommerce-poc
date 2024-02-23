@@ -1,11 +1,14 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Get,
   HttpStatus,
   Param,
+  ParseIntPipe,
   ParseUUIDPipe,
   Post,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
@@ -66,6 +69,24 @@ export class OrderController {
     return sendSuccessResponse({
       statusCode: HttpStatus.OK,
       data: order,
+    });
+  }
+
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  async getOrderHistory(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Req() req: Request,
+  ): Promise<SuccessResponse> {
+    const { id: userId, role } = req.user as IJwtPayload;
+    const data = await this.orderService.getOrderHistory({
+      userId,
+      role,
+      page,
+    });
+    return sendSuccessResponse({
+      statusCode: HttpStatus.OK,
+      data,
     });
   }
 }

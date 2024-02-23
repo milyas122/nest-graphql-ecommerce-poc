@@ -13,6 +13,12 @@ export interface IOrderResponse {
   productOrders: ProductOrder[];
 }
 
+export interface IGetOrderHistoryParams {
+  userId: string;
+  role: UserRole;
+  page: number;
+}
+
 export interface ICancelOrder {
   orderId: string;
   userId: string;

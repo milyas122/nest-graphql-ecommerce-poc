@@ -7,6 +7,7 @@ import { ProductOrder } from './entities/product-order.entity';
 import { CreateOrderDto } from './dto';
 import { orderConstants } from 'src/constants/verbose';
 import {
+  IGetOrderHistoryParams,
   ICancelOrder,
   IOrderResponse,
   IUpdatedProductInventory,
@@ -139,6 +140,20 @@ export class OrderService {
     return order;
   }
 
+  async getOrderHistory(data: IGetOrderHistoryParams): Promise<Order[]> {
+    const { userId, role, page } = data;
+    const skip = page * (page - 1);
+    const where = {};
+    if (role != UserRole.ADMIN) {
+      where[role] = { id: userId };
+    }
+    const orders = await this.orderRepository.find({
+      where,
+      take: 5,
+      skip,
+    });
+    return orders;
+  }
   /**
    * A function to generate a unique order number.
    *
