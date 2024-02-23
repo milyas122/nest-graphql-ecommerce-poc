@@ -161,6 +161,14 @@ export class ProductService {
       where: {
         id: In(ids),
       },
+      relations: {
+        seller: true,
+      },
+      select: {
+        seller: {
+          id: true,
+        },
+      },
     });
   }
 }

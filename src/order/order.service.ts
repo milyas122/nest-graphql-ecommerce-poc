@@ -6,7 +6,11 @@ import { Order, OrderStatus } from './entities/order.entity';
 import { ProductOrder } from './entities/product-order.entity';
 import { CreateOrderDto } from './dto';
 import { orderConstants } from 'src/constants/verbose';
-import { ICancelOrder, IOrderResponse } from './interfaces';
+import {
+  ICancelOrder,
+  IOrderResponse,
+  IUpdatedProductInventory,
+} from './interfaces';
 import { AuthService } from 'src/auth/auth.service';
 import { ProductService } from 'src/product/product.service';
 import { UserRole } from 'src/auth/entities/user.entity';
@@ -27,71 +31,85 @@ export class OrderService {
    *
    * @param {CreateOrderDto} products - the products to be included in the order
    * @param {string} userId - the id of the user placing the order
-   * @return {Promise<IOrderResponse>} the response containing the created order details
+   * @return {Promise<IOrderResponse>} the response containing the created orders details
    */
   async createOrder(
     { products }: CreateOrderDto,
     userId: string,
-  ): Promise<IOrderResponse> {
-    const { sellerIds, productOrders } = await this._updateProductInventory({
-      products,
-    });
+  ): Promise<IOrderResponse[]> {
+    const { sellerIds, sellerProductOrders } =
+      await this._updateProductInventory({
+        products,
+      });
+
     const buyer = await this.authService.findOneBy({ id: userId });
     const sellers = await this.authService.findSellerByIds(sellerIds);
     const orders = sellers.map((seller) => {
-      let orderNo = this._generateOrderNumber();
+      return new Order({
+        order_id: this._generateOrderNumber(),
+        status: OrderStatus.PROCESSING,
+        productOrders: sellerProductOrders[seller.id],
+        seller,
+        buyer,
+      });
     });
-    const order = new Order({
-      order_id: orderNo,
-      status: OrderStatus.PROCESSING,
-      // productOrders,
-      buyer,
+    await this.orderRepository.save(orders);
+    const result = orders.map((order) => {
+      const { seller, buyer, ...data } = order;
+      return {
+        ...data,
+        sellerId: seller.id,
+        buyerId: buyer.id,
+      };
     });
-    await this.orderRepository.save(order);
-    const {
-      buyer: buyerObj,
-      productOrders: productOrdersObj,
-      ...result
-    } = order;
+    console.log(result);
     return result;
   }
 
   /**
-   * Check product inventory before creating an order and update product inventory.
+   * Update product inventory based on the provided order data.
    *
-   * @param {CreateOrderDto} products - object containing products for the order
-   * @return {Promise<ProductOrder[]>} list of product orders
+   * @param {CreateOrderDto} products - the order data including products
+   * @return {Promise<IUpdatedProductInventory>} a object which contains a list of seller ids and a list of seller specific product orders
    */
-  private async _updateProductInventory({ products }: CreateOrderDto) {
+  private async _updateProductInventory({
+    products,
+  }: CreateOrderDto): Promise<IUpdatedProductInventory> {
     const productIds = products.map(({ productId }) => productId);
     const productsList = await this.productService.getProductsByIds(productIds);
-    const productObjList = products.reduce((acc, { productId, quantity }) => {
-      if (!acc[productId]) {
-        acc[productId] = { quantity };
-      }
-      return acc;
-    }, {});
+    const productQuantityObjs = products.reduce(
+      (acc, { productId, quantity }) => {
+        if (!acc[productId]) {
+          acc[productId] = { quantity };
+        }
+        return acc;
+      },
+      {},
+    );
     const sellerIds = [];
-    const isSellerExist = new Map<string, string>();
+    const sellerProductOrders: Record<string, ProductOrder[]> = {};
     // check product inventory before creating an order
-    const productOrders = productsList.map((product) => {
-      if (productObjList[product.id].quantity > product.stock) {
+    productsList.forEach((product) => {
+      if (productQuantityObjs[product.id].quantity > product.stock) {
         throw new BadRequestException(
           orderConstants.productOutOfStock(product.title),
         );
       }
-      if (!isSellerExist.has(productObjList[product.id].sellerId)) {
+      if (!sellerProductOrders.hasOwnProperty(product.seller.id)) {
+        sellerProductOrders[product.seller.id] = [];
         sellerIds.push(product.seller.id);
       }
       // Update product inventory
-      product.stock -= productObjList[product.id].quantity;
-      return new ProductOrder({
+      product.stock -= productQuantityObjs[product.id].quantity;
+      let productOrder = new ProductOrder({
         product,
-        quantity: productObjList[product.id].quantity,
-        total_price: product.price * productObjList[product.id],
+        quantity: productQuantityObjs[product.id].quantity,
+        total_price: product.price * productQuantityObjs[product.id].quantity,
       });
+      sellerProductOrders[product.seller.id].push(productOrder);
     });
-    return { productOrders, sellerIds };
+    console.log(sellerIds);
+    return { sellerProductOrders, sellerIds };
   }
 
   /**
