@@ -229,7 +229,7 @@ export class OrderService {
     if (!order) {
       throw new BadRequestException(orderConstants.orderNotFound);
     }
-    if ([OrderStatus.CANCELLED, OrderStatus.DELIVERED].includes(status)) {
+    if ([OrderStatus.CANCELLED, OrderStatus.DELIVERED].includes(order.status)) {
       throw new BadRequestException(
         orderConstants.orderStatusCanNotBeUpdated(order.order_id),
       );

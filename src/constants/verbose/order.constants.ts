@@ -14,5 +14,5 @@ export const orderConstants = {
     `order (${orderId}) can not be cancelled`,
   orderStatusCanNotBeUpdated: (orderId) =>
     `order (${orderId}) status can not be updated`,
-  statusShouldBeOneOf: `status should be one of ${OrderStatus}`,
+  statusShouldBeOneOf: `status should be one of ${Object.values(OrderStatus).join(', ')}`,
 };

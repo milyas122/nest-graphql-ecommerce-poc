@@ -96,10 +96,10 @@ export class OrderController {
       role,
       userId,
     });
-    return {
+    return sendSuccessResponse({
       statusCode: HttpStatus.OK,
       data: result,
-    };
+    });
   }
 
   /**
@@ -149,9 +149,9 @@ export class OrderController {
       role,
       status,
     });
-    return {
+    return sendSuccessResponse({
       statusCode: HttpStatus.OK,
       data: order,
-    };
+    });
   }
 }
