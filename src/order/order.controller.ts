@@ -72,10 +72,19 @@ export class OrderController {
     });
   }
 
+  /**
+   * Get a list of product orders.
+   *
+   * @param {number} page - pagination filter params
+   * @param {string} q - search filter query params
+   * @param {Request} req - express request object
+   * @return {Promise<SuccessResponse>} success response with order list object
+   */
   @Get()
   @UseGuards(JwtAuthGuard)
   async getOrderHistory(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('q', new DefaultValuePipe(undefined)) q: string,
     @Req() req: Request,
   ): Promise<SuccessResponse> {
     const { id: userId, role } = req.user as IJwtPayload;
@@ -83,6 +92,7 @@ export class OrderController {
       userId,
       role,
       page,
+      q,
     });
     return sendSuccessResponse({
       statusCode: HttpStatus.OK,

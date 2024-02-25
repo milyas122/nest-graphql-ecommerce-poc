@@ -1,5 +1,5 @@
 import { UserRole } from 'src/auth/entities/user.entity';
-import { OrderStatus } from './entities/order.entity';
+import { Order, OrderStatus } from './entities/order.entity';
 import { ProductOrder } from './entities/product-order.entity';
 
 export interface IOrderResponse {
@@ -17,6 +17,14 @@ export interface IGetOrderHistoryParams {
   userId: string;
   role: UserRole;
   page: number;
+  q: string;
+}
+
+export interface IGetOrderHistoryResult {
+  current_page: number;
+  total_pages: number;
+  total: number;
+  orders: Order[];
 }
 
 export interface ICancelOrder {

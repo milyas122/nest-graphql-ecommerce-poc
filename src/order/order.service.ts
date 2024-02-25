@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { ILike, Repository } from 'typeorm';
 
 import { Order, OrderStatus } from './entities/order.entity';
 import { ProductOrder } from './entities/product-order.entity';
@@ -11,6 +11,7 @@ import {
   ICancelOrder,
   IOrderResponse,
   IUpdatedProductInventory,
+  IGetOrderHistoryResult,
 } from './interfaces';
 import { AuthService } from 'src/auth/auth.service';
 import { ProductService } from 'src/product/product.service';
@@ -140,20 +141,39 @@ export class OrderService {
     return order;
   }
 
-  async getOrderHistory(data: IGetOrderHistoryParams): Promise<Order[]> {
-    const { userId, role, page } = data;
+  /**
+   * Retrieves the order history or search by product title.
+   *
+   * @param {IGetOrderHistoryParams} data - the parameters for retrieving order history
+   * @return {Promise<IGetOrderHistoryResult>} An object containing the list of orders, the total number of pages, and the total number of products
+   */
+  async getOrderHistory(
+    data: IGetOrderHistoryParams,
+  ): Promise<IGetOrderHistoryResult> {
+    const { userId, role, page, q } = data;
     const skip = page * (page - 1);
+    const limit = 5;
     const where = {};
     if (role != UserRole.ADMIN) {
-      where[role] = { id: userId };
+      where[role] = { id: userId }; // seller and buyer specific order
     }
-    const orders = await this.orderRepository.find({
+    if (q) {
+      console.log(q);
+      where['productOrders.product.title'] = ILike(`%${q}%`); // search by product title
+    }
+    const result = await this.orderRepository.findAndCount({
       where,
-      take: 5,
+      take: limit,
       skip,
     });
-    return orders;
+    return {
+      orders: result[0],
+      current_page: page,
+      total_pages: Math.ceil(result[1] / limit),
+      total: result[1],
+    };
   }
+
   /**
    * A function to generate a unique order number.
    *
