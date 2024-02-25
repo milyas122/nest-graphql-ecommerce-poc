@@ -49,30 +49,6 @@ export class OrderController {
   }
 
   /**
-   * Cancels an order.
-   *
-   * @param {string} id - the id of the order to be canceled
-   * @return {Promise<SuccessResponse>} success response with the cancelled order detail
-   */
-  @Get(':id/cancel') // Code review question regarding request method
-  @UseGuards(JwtAuthGuard)
-  async cancelOrder(
-    @Param('id', ParseUUIDPipe) id: string,
-    @Req() req: Request,
-  ): Promise<SuccessResponse> {
-    const { id: userId, role } = req.user as IJwtPayload;
-    const order = await this.orderService.cancelOrder({
-      orderId: id,
-      userId,
-      role,
-    });
-    return sendSuccessResponse({
-      statusCode: HttpStatus.OK,
-      data: order,
-    });
-  }
-
-  /**
    * Get a list of product orders.
    *
    * @param {number} page - pagination filter params
@@ -97,6 +73,55 @@ export class OrderController {
     return sendSuccessResponse({
       statusCode: HttpStatus.OK,
       data,
+    });
+  }
+
+  /**
+   * Retrieves the order details for a given ID.
+   *
+   * @param {string} id - the ID of the order from url params
+   * @param {Request} req - the express request object
+   * @return {Promise<SuccessResponse>} the object containing the order details
+   */
+  @Get(':id')
+  @UseGuards(JwtAuthGuard)
+  async getOrderDetail(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: Request,
+  ): Promise<SuccessResponse> {
+    const { id: userId, role } = req.user as IJwtPayload;
+    const result = await this.orderService.getOrderById({
+      orderId: id,
+      role,
+      userId,
+    });
+    return {
+      statusCode: HttpStatus.OK,
+      data: result,
+    };
+  }
+
+  /**
+   * Cancels an order.
+   *
+   * @param {string} id - the id of the order to be canceled
+   * @return {Promise<SuccessResponse>} success response with the cancelled order detail
+   */
+  @Get(':id/cancel') // Code review question regarding request method
+  @UseGuards(JwtAuthGuard)
+  async cancelOrder(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Req() req: Request,
+  ): Promise<SuccessResponse> {
+    const { id: userId, role } = req.user as IJwtPayload;
+    const order = await this.orderService.cancelOrder({
+      orderId: id,
+      userId,
+      role,
+    });
+    return sendSuccessResponse({
+      statusCode: HttpStatus.OK,
+      data: order,
     });
   }
 }

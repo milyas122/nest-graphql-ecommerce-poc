@@ -33,6 +33,8 @@ export interface ICancelOrder {
   role: UserRole;
 }
 
+export interface IGetOrderDetailParams extends ICancelOrder {}
+
 export interface IUpdatedProductInventory {
   sellerIds: string[];
   sellerProductOrders: Record<string, ProductOrder[]>;

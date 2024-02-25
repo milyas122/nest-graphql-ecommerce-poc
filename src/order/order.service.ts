@@ -12,6 +12,7 @@ import {
   IOrderResponse,
   IUpdatedProductInventory,
   IGetOrderHistoryResult,
+  IGetOrderDetailParams,
 } from './interfaces';
 import { AuthService } from 'src/auth/auth.service';
 import { ProductService } from 'src/product/product.service';
@@ -172,6 +173,27 @@ export class OrderService {
       total_pages: Math.ceil(result[1] / limit),
       total: result[1],
     };
+  }
+
+  async getOrderById({
+    orderId,
+    userId,
+    role,
+  }: IGetOrderDetailParams): Promise<Order> {
+    const where = { id: orderId };
+    if (role != UserRole.ADMIN) {
+      where[role] = { id: userId }; // seller and buyer specific order
+    }
+    const order = await this.orderRepository.findOne({
+      where,
+      relations: {
+        productOrders: true,
+      },
+    });
+    if (!order) {
+      throw new BadRequestException(orderConstants.orderNotFound);
+    }
+    return order;
   }
 
   /**
