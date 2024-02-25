@@ -13,6 +13,7 @@ import {
   IUpdatedProductInventory,
   IGetOrderHistoryResult,
   IGetOrderDetailParams,
+  IUpdateOrderStatusParams,
 } from './interfaces';
 import { AuthService } from 'src/auth/auth.service';
 import { ProductService } from 'src/product/product.service';
@@ -175,6 +176,14 @@ export class OrderService {
     };
   }
 
+  /**
+   * Get order details by order ID.
+   *
+   * @param {IGetOrderDetailParams} orderId - The ID of the order
+   * @param {IGetOrderDetailParams} userId - The ID of the user
+   * @param {IGetOrderDetailParams} role - The role of the user
+   * @return {Promise<Order>} returns an object containing the order details
+   */
   async getOrderById({
     orderId,
     userId,
@@ -193,6 +202,34 @@ export class OrderService {
     if (!order) {
       throw new BadRequestException(orderConstants.orderNotFound);
     }
+    return order;
+  }
+
+  /**
+   * Update the order status based on the provided data.
+   *
+   * @param {IUpdateOrderStatusParams} data - data object contains the order ID, user ID, role, and status to be updated
+   * @return {Promise<Order>} the updated order
+   */
+  async updateOrderStatus(data: IUpdateOrderStatusParams): Promise<Order> {
+    const { orderId, userId, role, status } = data;
+    const where = { id: orderId };
+    if (role != UserRole.ADMIN) {
+      where[role] = { id: userId }; // seller and buyer specific order
+    }
+    const order = await this.orderRepository.findOne({
+      where,
+    });
+    if (!order) {
+      throw new BadRequestException(orderConstants.orderNotFound);
+    }
+    if ([OrderStatus.CANCELLED, OrderStatus.DELIVERED].includes(status)) {
+      throw new BadRequestException(
+        orderConstants.orderStatusCanNotBeUpdated(order.order_id),
+      );
+    }
+    order.status = status;
+    await this.orderRepository.save(order);
     return order;
   }
 

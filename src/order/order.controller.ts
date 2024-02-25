@@ -8,13 +8,14 @@ import {
   ParseIntPipe,
   ParseUUIDPipe,
   Post,
+  Put,
   Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { Request } from 'express';
 
-import { CreateOrderDto } from './dto';
+import { CreateOrderDto, UpdateOrderStatusDto } from './dto';
 import { OrderService } from './order.service';
 import { IJwtPayload } from 'src/product/interfaces';
 import { JwtAuthGuard, RolesGuard } from 'src/guards';
@@ -123,5 +124,34 @@ export class OrderController {
       statusCode: HttpStatus.OK,
       data: order,
     });
+  }
+
+  /**
+   * Update the order status.
+   *
+   * @param {string} id - The ID of the order
+   * @param {UpdateOrderStatusDto} status - The status to be updated
+   * @param {Request} req - The request object
+   * @return {Promise<SuccessResponse>} The updated order details
+   */
+  @Put(':id/update-status')
+  @Roles(UserRole.SELLER, UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async updateOrderStatus(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() { status }: UpdateOrderStatusDto,
+    @Req() req: Request,
+  ): Promise<SuccessResponse> {
+    const { id: userId, role } = req.user as IJwtPayload;
+    const order = await this.orderService.updateOrderStatus({
+      orderId: id,
+      userId,
+      role,
+      status,
+    });
+    return {
+      statusCode: HttpStatus.OK,
+      data: order,
+    };
   }
 }
