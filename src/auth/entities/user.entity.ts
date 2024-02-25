@@ -1,7 +1,14 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToMany,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 
 import { Order } from 'src/order/entities/order.entity';
 import { Product } from 'src/product/entities/product.entity';
+import { RolePermission } from './role.permission.entity';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -34,6 +41,9 @@ export class User {
 
   @OneToMany(() => Order, (order) => order.seller, { cascade: true })
   sellerOrders: Order[];
+
+  @ManyToMany(() => RolePermission, (rolePermission) => rolePermission.users)
+  permissions: RolePermission[];
 
   constructor(entity: Partial<User>) {
     Object.assign(this, entity);

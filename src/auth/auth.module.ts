@@ -9,10 +9,11 @@ import { JwtStrategy } from './jwt.strategy';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 import { AuthSubscriber } from './auth.subscriber';
+import { RolePermission } from './entities/role.permission.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, RolePermission]),
     PassportModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
