@@ -160,13 +160,19 @@ export class OrderService {
       where[role] = { id: userId }; // seller and buyer specific order
     }
     if (q) {
-      console.log(q);
-      where['productOrders.product.title'] = ILike(`%${q}%`); // search by product title
+      where['productOrders'] = {
+        product: {
+          title: ILike(`%${q}%`),
+        },
+      }; // search by product title
     }
     const result = await this.orderRepository.findAndCount({
       where,
       take: limit,
       skip,
+      relations: {
+        productOrders: true,
+      },
     });
     return {
       orders: result[0],
