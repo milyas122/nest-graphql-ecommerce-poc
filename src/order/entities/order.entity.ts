@@ -11,13 +11,6 @@ import {
 import { User } from 'src/auth/entities/user.entity';
 import { ProductOrder } from './product-order.entity';
 
-export enum OrderStatus {
-  PROCESSING = 'processing',
-  SHIPPED = 'shipped',
-  DELIVERED = 'delivered',
-  CANCELLED = 'cancelled',
-}
-
 @Entity()
 export class Order {
   @PrimaryGeneratedColumn('uuid')
@@ -26,8 +19,8 @@ export class Order {
   @Column({ unique: true })
   order_id: string;
 
-  @Column({ type: 'enum', enum: OrderStatus })
-  status: OrderStatus;
+  @Column({ nullable: true })
+  status: string;
 
   @CreateDateColumn()
   created_at: Date;

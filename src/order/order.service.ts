@@ -2,7 +2,8 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 
-import { Order, OrderStatus } from './entities/order.entity';
+import { Order } from './entities/order.entity';
+import { OrderStatus } from './dto';
 import { ProductOrder } from './entities/product-order.entity';
 import { CreateOrderDto } from './dto';
 import { orderConstants } from 'src/constants/verbose';
@@ -45,7 +46,6 @@ export class OrderService {
       await this._updateProductInventory({
         products,
       });
-
     const buyer = await this.authService.findOneBy({ id: userId });
     const sellers = await this.authService.findSellerByIds(sellerIds);
     const orders = sellers.map((seller) => {
@@ -66,7 +66,6 @@ export class OrderService {
         buyerId: buyer.id,
       };
     });
-    console.log(result);
     return result;
   }
 
@@ -229,7 +228,11 @@ export class OrderService {
     if (!order) {
       throw new BadRequestException(orderConstants.orderNotFound);
     }
-    if ([OrderStatus.CANCELLED, OrderStatus.DELIVERED].includes(order.status)) {
+    if (
+      [OrderStatus.CANCELLED, OrderStatus.DELIVERED].includes(
+        order.status as OrderStatus,
+      )
+    ) {
       throw new BadRequestException(
         orderConstants.orderStatusCanNotBeUpdated(order.order_id),
       );

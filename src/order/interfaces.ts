@@ -1,11 +1,12 @@
 import { UserRole } from 'src/auth/entities/user.entity';
-import { Order, OrderStatus } from './entities/order.entity';
+import { Order } from './entities/order.entity';
 import { ProductOrder } from './entities/product-order.entity';
+import { OrderStatus } from './dto';
 
 export interface IOrderResponse {
   id: string;
   order_id: string;
-  status: OrderStatus;
+  status: string;
   created_at: Date;
   updated_at: Date;
   buyerId: string;
