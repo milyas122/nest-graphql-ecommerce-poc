@@ -1,7 +1,13 @@
-import { UserRole } from 'src/auth/entities/user.entity';
+import { UserRoleString } from 'src/auth/interfaces';
 import { Order } from './entities/order.entity';
 import { ProductOrder } from './entities/product-order.entity';
-import { OrderStatus } from './dto';
+
+export enum OrderStatus {
+  PROCESSING = 'processing',
+  SHIPPED = 'shipped',
+  DELIVERED = 'delivered',
+  CANCELLED = 'cancelled',
+}
 
 export interface IOrderResponse {
   id: string;
@@ -16,7 +22,7 @@ export interface IOrderResponse {
 
 export interface IGetOrderHistoryParams {
   userId: string;
-  role: UserRole;
+  role: UserRoleString;
   page: number;
   q: string;
 }
@@ -31,7 +37,7 @@ export interface IGetOrderHistoryResult {
 export interface ICancelOrder {
   orderId: string;
   userId: string;
-  role: UserRole;
+  role: UserRoleString;
 }
 
 export interface IUpdateOrderStatusParams extends ICancelOrder {

@@ -9,6 +9,7 @@ import { ICreateUser } from './interfaces';
 import { User } from './entities/user.entity';
 import { IJwtPayload } from 'src/product/interfaces';
 import { authConstants } from 'src/constants/verbose';
+import { UserRole } from './interfaces';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -25,9 +26,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
   async validate(payload: ICreateUser): Promise<IJwtPayload> {
     const { sub } = payload;
-
     const isUser = await this.userRepository.findOneBy({ id: sub });
-
     if (!isUser) {
       throw new UnauthorizedException(authConstants.userNotFound);
     }
@@ -35,7 +34,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       id: isUser.id,
       email: isUser.email,
       name: isUser.name,
-      role: isUser.role,
+      role: UserRole[isUser.role.toUpperCase()],
     };
     return userObj;
   }

@@ -1,4 +1,4 @@
-import { UserRole } from 'src/auth/entities/user.entity';
+import { UserRole } from 'src/auth/interfaces';
 
 export const authConstants = {
   emailNotEmpty: 'email must not empty',

@@ -10,12 +10,6 @@ import { Order } from 'src/order/entities/order.entity';
 import { Product } from 'src/product/entities/product.entity';
 import { RolePermission } from './role.permission.entity';
 
-export enum UserRole {
-  ADMIN = 'admin',
-  SELLER = 'seller',
-  BUYER = 'buyer',
-}
-
 @Entity()
 export class User {
   @PrimaryGeneratedColumn('uuid')
@@ -27,8 +21,8 @@ export class User {
   @Column()
   name: string;
 
-  @Column({ type: 'enum', enum: UserRole })
-  role: UserRole;
+  @Column({ nullable: true })
+  role: string; // user role enum values
 
   @Column()
   password: string;

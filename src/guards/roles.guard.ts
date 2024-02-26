@@ -6,7 +6,8 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
-import { UserRole } from 'src/auth/entities/user.entity';
+
+import { UserRole } from 'src/auth/interfaces';
 import { appConstants } from 'src/constants/verbose';
 import { ROLES_KEY } from 'src/roles.decorator';
 

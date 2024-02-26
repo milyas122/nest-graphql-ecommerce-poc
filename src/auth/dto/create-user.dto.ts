@@ -1,10 +1,10 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
 import { authConstants } from 'src/constants/verbose';
-import { UserRole } from '../entities/user.entity';
+import { UserRole } from '../interfaces';
 
 export class CreateUserDto {
-  @IsNotEmpty({ message: authConstants.emailNotEmpty })
+  @IsNotEmpty({ message: '' })
   @IsEmail({}, { message: authConstants.emailMustBeValid })
   email: string;
 

@@ -12,7 +12,7 @@ import {
   IRemoveProduct,
   IUpdateProduct,
 } from './interfaces';
-import { UserRole } from 'src/auth/entities/user.entity';
+import { UserRole } from 'src/auth/interfaces';
 import { productConstants } from 'src/constants/verbose';
 import { AuthService } from 'src/auth/auth.service';
 
@@ -95,7 +95,7 @@ export class ProductService {
     const { password, ...sellerWithoutPassword } = seller;
     return {
       ...result,
-      seller: sellerWithoutPassword,
+      seller: sellerWithoutPassword as IJwtPayload,
     };
   }
 

@@ -1,8 +1,10 @@
 import { Body, Controller, HttpStatus, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateUserDto } from './dto';
+// import { CreateUserDto } from './dto';
+
 import { LoginDto } from './dto/login-user.dto';
 import { SuccessResponse, sendSuccessResponse } from 'src/utils';
+import { CreateUserDto } from './dto/create-user.dto';
 
 @Controller('auth')
 export class AuthController {

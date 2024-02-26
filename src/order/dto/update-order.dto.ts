@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty } from 'class-validator';
-import { OrderStatus } from '../entities/order.entity';
+import { OrderStatus } from '../interfaces';
 import { orderConstants } from 'src/constants/verbose';
 
 export class UpdateOrderStatusDto {

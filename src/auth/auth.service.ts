@@ -9,8 +9,8 @@ import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
 import { CreateUserDto, LoginDto } from './dto';
-import { User, UserRole } from './entities/user.entity';
-import { ICreateUser } from './interfaces';
+import { User } from './entities/user.entity';
+import { ICreateUser, UserRole } from './interfaces';
 import { authConstants } from 'src/constants/verbose';
 
 @Injectable()
@@ -42,7 +42,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       name: user.name,
-      role: user.role,
+      role: UserRole[user.role],
     };
     const accessToken = await this._generateToken(payload);
     return { user: payload, access_token: accessToken };
@@ -70,7 +70,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       name: user.name,
-      role: user.role,
+      role: UserRole[user.role],
     };
     const accessToken = await this._generateToken(payload);
     return {

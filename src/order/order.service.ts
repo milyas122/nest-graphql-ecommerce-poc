@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 
 import { Order } from './entities/order.entity';
-import { OrderStatus } from './dto';
 import { ProductOrder } from './entities/product-order.entity';
 import { CreateOrderDto } from './dto';
 import { orderConstants } from 'src/constants/verbose';
@@ -15,10 +14,11 @@ import {
   IGetOrderHistoryResult,
   IGetOrderDetailParams,
   IUpdateOrderStatusParams,
+  OrderStatus,
 } from './interfaces';
 import { AuthService } from 'src/auth/auth.service';
 import { ProductService } from 'src/product/product.service';
-import { UserRole } from 'src/auth/entities/user.entity';
+import { UserRole } from 'src/auth/interfaces';
 
 @Injectable()
 export class OrderService {
@@ -111,7 +111,6 @@ export class OrderService {
       });
       sellerProductOrders[product.seller.id].push(productOrder);
     });
-    console.log(sellerIds);
     return { sellerProductOrders, sellerIds };
   }
 

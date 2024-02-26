@@ -1,17 +1,17 @@
-import { UserRole } from 'src/auth/entities/user.entity';
 import { Product } from './entities/product.entity';
+import { UserRoleString } from 'src/auth/interfaces';
 
 export interface IJwtPayload {
   id: string;
   email: string;
   name: string;
-  role: UserRole;
+  role: UserRoleString;
 }
 
 export interface IUpdateProduct {
   productId: string;
   userId: string;
-  role: UserRole;
+  role: UserRoleString;
 }
 
 export interface IRemoveProduct extends IUpdateProduct {}

@@ -22,7 +22,7 @@ import { IJwtPayload } from './interfaces';
 import { JwtAuthGuard, RolesGuard } from 'src/guards';
 import { SuccessResponse, sendSuccessResponse } from 'src/utils';
 import { Roles } from 'src/roles.decorator';
-import { UserRole } from 'src/auth/entities/user.entity';
+import { UserRole } from 'src/auth/interfaces';
 
 @Controller('products')
 export class ProductController {
