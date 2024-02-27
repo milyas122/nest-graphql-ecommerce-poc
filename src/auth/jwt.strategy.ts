@@ -25,6 +25,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   }
 
   async validate(payload: ICreateUser): Promise<IJwtPayload> {
+    console.log(payload);
     const { sub } = payload;
     const isUser = await this.userRepository.findOneBy({ id: sub });
     if (!isUser) {

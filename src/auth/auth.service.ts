@@ -8,10 +8,11 @@ import { In, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
-import { CreateUserDto, LoginDto } from './dto';
+import { LoginUserPayload, RegisterUserPayload } from './dto';
 import { User } from './entities/user.entity';
 import { ICreateUser, UserRole } from './interfaces';
 import { authConstants } from 'src/constants/verbose';
+import { CreateUserInput, LoginUserInput } from './dto/inputs';
 
 @Injectable()
 export class AuthService {
@@ -27,19 +28,16 @@ export class AuthService {
    * @return {Promise<{ user: ICreateUser; access_token: string; }>} a promise that resolves with the created user object and an access token
    */
   async createUser(
-    data: CreateUserDto,
+    data: CreateUserInput,
     role: UserRole,
-  ): Promise<{
-    user: ICreateUser;
-    access_token: string;
-  }> {
+  ): Promise<RegisterUserPayload> {
     const isUserExist = await this.userRepository.findOneBy({
       email: data.email,
     });
     if (isUserExist) {
       throw new BadRequestException(authConstants.emailAlreadyExist);
     }
-    const user = new User(data);
+    const user = new User({ role, ...data });
     await this.userRepository.save(user);
     const payload = {
       sub: user.id,
@@ -57,9 +55,7 @@ export class AuthService {
    * @param {LoginDto} data - data object require for login
    * @return {Promise<{ user: ICreateUser; access_token: string }>} a promise that resolves with the created user object and an access token
    */
-  async login(
-    data: LoginDto,
-  ): Promise<{ user: ICreateUser; access_token: string }> {
+  async login(data: LoginUserInput): Promise<LoginUserPayload> {
     const { email, password } = data;
     const user = await this.userRepository.findOneBy({ email });
     if (!user) {
@@ -73,8 +69,9 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       name: user.name,
-      role: UserRole[user.role],
+      role: UserRole[user.role.toUpperCase()],
     };
+    console.log(UserRole[user.role.toUpperCase()]);
     const accessToken = await this._generateToken(payload);
     return {
       user: payload,

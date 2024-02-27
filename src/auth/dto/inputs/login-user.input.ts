@@ -1,16 +1,16 @@
-import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
+import { Field, InputType } from '@nestjs/graphql';
+import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
 import { authConstants } from 'src/constants/verbose';
 
-export class CreateUserDto {
-  @IsNotEmpty({ message: '' })
+@InputType()
+export class LoginUserInput {
+  @Field()
+  @IsNotEmpty({ message: authConstants.emailNotEmpty })
   @IsEmail({}, { message: authConstants.emailMustBeValid })
   email: string;
 
-  @IsNotEmpty({ message: authConstants.nameNotEmpty })
-  @IsString({ message: authConstants.nameMustBeString })
-  name: string;
-
+  @Field()
   @IsNotEmpty({ message: authConstants.passwordNotEmpty })
   @IsString({ message: authConstants.passwordMustBeString })
   password: string;

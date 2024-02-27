@@ -1,3 +1,5 @@
+import { Field, ObjectType } from '@nestjs/graphql';
+
 export interface IResponse {
   message?: string | string[];
   error: string;
