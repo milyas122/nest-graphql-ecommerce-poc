@@ -26,7 +26,10 @@ export class AuthService {
    * @param {CreateUserDto} data - the data for creating a new user
    * @return {Promise<{ user: ICreateUser; access_token: string; }>} a promise that resolves with the created user object and an access token
    */
-  async createUser(data: CreateUserDto): Promise<{
+  async createUser(
+    data: CreateUserDto,
+    role: UserRole,
+  ): Promise<{
     user: ICreateUser;
     access_token: string;
   }> {
@@ -42,7 +45,7 @@ export class AuthService {
       sub: user.id,
       email: user.email,
       name: user.name,
-      role: UserRole[user.role],
+      role,
     };
     const accessToken = await this._generateToken(payload);
     return { user: payload, access_token: accessToken };

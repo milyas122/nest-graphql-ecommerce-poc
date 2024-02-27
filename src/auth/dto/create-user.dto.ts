@@ -1,7 +1,6 @@
 import { IsEmail, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
 import { authConstants } from 'src/constants/verbose';
-import { UserRole } from '../interfaces';
 
 export class CreateUserDto {
   @IsNotEmpty({ message: '' })
@@ -15,7 +14,4 @@ export class CreateUserDto {
   @IsNotEmpty({ message: authConstants.passwordNotEmpty })
   @IsString({ message: authConstants.passwordMustBeString })
   password: string;
-
-  @IsEnum(UserRole, { message: authConstants.roleMustBeValid })
-  role: UserRole = UserRole.BUYER;
 }

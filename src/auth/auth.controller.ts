@@ -1,10 +1,12 @@
-import { Body, Controller, HttpStatus, Post } from '@nestjs/common';
-import { AuthService } from './auth.service';
-// import { CreateUserDto } from './dto';
+import { Body, Controller, HttpStatus, Post, UseGuards } from '@nestjs/common';
 
+import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login-user.dto';
 import { SuccessResponse, sendSuccessResponse } from 'src/utils';
 import { CreateUserDto } from './dto/create-user.dto';
+import { JwtAuthGuard, RolesGuard } from 'src/guards';
+import { Roles } from 'src/roles.decorator';
+import { UserRole } from './interfaces';
 
 @Controller('auth')
 export class AuthController {
@@ -17,8 +19,19 @@ export class AuthController {
    * @return {Promise<SuccessResponse>} a promise that resolves to a success response
    */
   @Post('signup')
-  async register(@Body() data: CreateUserDto): Promise<SuccessResponse> {
-    const result = await this.authService.createUser(data);
+  async registerUser(@Body() data: CreateUserDto): Promise<SuccessResponse> {
+    const result = await this.authService.createUser(data, UserRole.BUYER);
+    return sendSuccessResponse({
+      statusCode: HttpStatus.CREATED,
+      data: result,
+    });
+  }
+
+  @Post('register/seller')
+  @Roles(UserRole.ADMIN)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  async registerSeller(@Body() data: CreateUserDto): Promise<SuccessResponse> {
+    const result = await this.authService.createUser(data, UserRole.SELLER);
     return sendSuccessResponse({
       statusCode: HttpStatus.CREATED,
       data: result,
