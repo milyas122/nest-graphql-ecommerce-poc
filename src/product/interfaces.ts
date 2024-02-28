@@ -8,13 +8,13 @@ export interface IJwtPayload {
   role: UserRoleString;
 }
 
-export interface IUpdateProduct {
+export interface IRemoveProduct {
   productId: string;
   userId: string;
   role: UserRoleString;
 }
 
-export interface IRemoveProduct extends IUpdateProduct {}
+export interface IUpdateProduct extends IRemoveProduct {}
 
 export interface ICreateProductResponse {
   id: string;

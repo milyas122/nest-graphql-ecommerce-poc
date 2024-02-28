@@ -33,7 +33,7 @@ export class Product {
   @Column()
   stock: number;
 
-  @Field((type) => User)
+  @Field((type) => User, { nullable: true })
   @ManyToOne(() => User, (user) => user.products)
   seller: User;
 

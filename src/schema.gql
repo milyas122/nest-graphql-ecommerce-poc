@@ -8,7 +8,7 @@ type Product {
   description: String!
   price: Int!
   stock: Int!
-  seller: User!
+  seller: User
   productOrders: [ProductOrder!]!
 }
 
@@ -70,14 +70,68 @@ type RegisterUserPayload {
   access_token: String!
 }
 
+type MessagePayload {
+  message: String!
+}
+
+type JwtPayload {
+  id: String!
+  email: String!
+  name: String!
+  role: String!
+}
+
+type GetProductListPayload {
+  current_page: Int!
+  total_pages: Int!
+  total: Int!
+  products: [Product!]!
+}
+
+type GetProductDetailPayload {
+  id: String!
+  title: String!
+  description: String!
+  price: Int!
+  stock: Int!
+  seller: JwtPayload!
+}
+
+type CreateProductPayload {
+  id: String!
+  title: String!
+  description: String!
+  price: Int!
+  stock: Int!
+}
+
 type Query {
+  getProducts(page: Int!): GetProductListPayload!
+  getProductDetail(id: String!): GetProductDetailPayload!
   sayHello: String!
 }
 
 type Mutation {
+  removeProduct(id: String!): MessagePayload!
+  createProduct(createProductInput: CreateProductInput!): CreateProductPayload!
+  updateProduct(id: String!, updateProductInput: UpdateProductInput!): MessagePayload!
   loginUser(loginData: LoginUserInput!): LoginUserPayload!
   signupUser(createUserData: CreateUserInput!): RegisterUserPayload!
   registerSeller(createUserData: CreateUserInput!): RegisterUserPayload!
+}
+
+input CreateProductInput {
+  title: String!
+  description: String!
+  price: Int!
+  stock: Int!
+}
+
+input UpdateProductInput {
+  title: String
+  description: String
+  price: Int
+  stock: Int
 }
 
 input LoginUserInput {

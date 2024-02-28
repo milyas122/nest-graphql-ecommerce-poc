@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
 import { Product } from './entities/product.entity';
-import { CreateProductDto, UpdateProductDto } from './dto';
 import {
   ICreateProductResponse,
   IGetProductDetailResponse,
@@ -15,6 +14,8 @@ import {
 import { UserRole } from 'src/auth/interfaces';
 import { productConstants } from 'src/constants/verbose';
 import { AuthService } from 'src/auth/auth.service';
+import { CreateProductInput } from './dto/inputs/create-product.input';
+import { UpdateProductInput } from './dto/inputs';
 
 @Injectable()
 export class ProductService {
@@ -32,7 +33,7 @@ export class ProductService {
    * @return {Promise<ICreateProductResponse>} the newly created product
    */
   async createProduct(
-    data: CreateProductDto,
+    data: CreateProductInput,
     user: IJwtPayload,
   ): Promise<ICreateProductResponse> {
     const seller = await this.authService.findOneBy({ id: user.id });
@@ -60,12 +61,6 @@ export class ProductService {
       relations: {
         seller: true,
       },
-      select: {
-        seller: {
-          id: true,
-          name: true,
-        },
-      },
     });
     return {
       products: result[0],
@@ -75,6 +70,7 @@ export class ProductService {
     };
   }
 
+  // Done
   /**
    * Retrieves product details by ID.
    *
@@ -131,13 +127,15 @@ export class ProductService {
    * @return {Promise<{ message: string }>} a message indicating the success of the update
    */
   async updateProduct(
-    updateDto: UpdateProductDto,
+    updateDto: UpdateProductInput,
     data: IUpdateProduct,
   ): Promise<{ message: string }> {
-    const { productId, userId, role } = data;
+    const { userId, role } = data;
+
     const where = {
-      id: productId,
+      id: data.productId,
     };
+
     if (role === UserRole.SELLER) {
       where['seller'] = { id: userId };
     }
