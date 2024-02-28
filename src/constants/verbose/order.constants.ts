@@ -1,4 +1,4 @@
-import { OrderStatus } from 'src/order/interfaces';
+import { OrderStatus } from 'src/order/dto';
 
 export const orderConstants = {
   orderStatusMustNotBeEmpty: 'order status must not be empty',

@@ -19,13 +19,11 @@ export class ProductOrder {
   @Column({ type: 'decimal' })
   total_price: number;
 
-  @Field((type) => Product)
   @ManyToOne(() => Product, (product) => product.productOrders, {
     cascade: true,
   })
   product: Product;
 
-  @Field((type) => Order)
   @ManyToOne(() => Order, (order) => order.productOrders)
   order: Order;
 

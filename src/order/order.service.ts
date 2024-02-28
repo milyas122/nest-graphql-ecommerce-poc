@@ -4,7 +4,6 @@ import { ILike, Repository } from 'typeorm';
 
 import { Order } from './entities/order.entity';
 import { ProductOrder } from './entities/product-order.entity';
-import { CreateOrderDto } from './dto';
 import { orderConstants } from 'src/constants/verbose';
 import {
   IGetOrderHistoryParams,
@@ -14,11 +13,12 @@ import {
   IGetOrderHistoryResult,
   IGetOrderDetailParams,
   IUpdateOrderStatusParams,
-  OrderStatus,
 } from './interfaces';
 import { AuthService } from 'src/auth/auth.service';
 import { ProductService } from 'src/product/product.service';
 import { UserRole } from 'src/auth/interfaces';
+import { OrderStatus } from './dto';
+import { CreateOrderInput } from './dto/inputs';
 
 @Injectable()
 export class OrderService {
@@ -27,8 +27,6 @@ export class OrderService {
     private readonly productService: ProductService,
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
-    @InjectRepository(ProductOrder)
-    private readonly productOrderRepository: Repository<ProductOrder>,
   ) {}
 
   /**
@@ -39,7 +37,7 @@ export class OrderService {
    * @return {Promise<IOrderResponse>} the response containing the created orders details
    */
   async createOrder(
-    { products }: CreateOrderDto,
+    { products }: CreateOrderInput,
     userId: string,
   ): Promise<IOrderResponse[]> {
     const { sellerIds, sellerProductOrders } =
@@ -77,7 +75,7 @@ export class OrderService {
    */
   private async _updateProductInventory({
     products,
-  }: CreateOrderDto): Promise<IUpdatedProductInventory> {
+  }: CreateOrderInput): Promise<IUpdatedProductInventory> {
     const productIds = products.map(({ productId }) => productId);
     const productsList = await this.productService.getProductsByIds(productIds);
     const productQuantityObjs = products.reduce(

@@ -16,8 +16,6 @@ type ProductOrder {
   id: String!
   quantity: Int!
   total_price: Int!
-  product: Product!
-  order: Order!
 }
 
 type Order {
@@ -45,6 +43,38 @@ type User {
   products: [Product!]!
   buyerOrders: [Order!]!
   sellerOrders: [Order!]!
+}
+
+type GetOrderHistoryPayload {
+  current_page: Int!
+  total_pages: Int!
+  total: Int!
+  orders: [Order!]!
+}
+
+type OrderDetailPayload {
+  id: String!
+  order_id: String!
+  status: String!
+  created_at: DateTime!
+  updated_at: DateTime!
+  productOrders: [ProductOrder!]!
+}
+
+type CancelOrderPayload {
+  id: String!
+  order_id: String!
+  status: String!
+  created_at: DateTime!
+  updated_at: DateTime!
+}
+
+type UpdateOrderStatusPayload {
+  id: String!
+  order_id: String!
+  status: String!
+  created_at: DateTime!
+  updated_at: DateTime!
 }
 
 type CreateUserPayload {
@@ -109,6 +139,8 @@ type Query {
   getProducts(page: Int!): GetProductListPayload!
   getProductDetail(id: String!): GetProductDetailPayload!
   sayHello: String!
+  getOrderHistory(page: Int = 1, q: String): GetOrderHistoryPayload!
+  getOrderDetail(id: String!): OrderDetailPayload!
 }
 
 type Mutation {
@@ -118,6 +150,9 @@ type Mutation {
   loginUser(loginData: LoginUserInput!): LoginUserPayload!
   signupUser(createUserData: CreateUserInput!): RegisterUserPayload!
   registerSeller(createUserData: CreateUserInput!): RegisterUserPayload!
+  createOrder(createOrderInput: CreateOrderInput!): String!
+  cancelOrder(id: String!): CancelOrderPayload!
+  updateOrderStatus(id: String!, updateOrderStatusInput: UpdateOrderStatusInput!): UpdateOrderStatusPayload!
 }
 
 input CreateProductInput {
@@ -143,4 +178,24 @@ input CreateUserInput {
   email: String!
   name: String!
   password: String!
+}
+
+input CreateOrderInput {
+  products: [ProductOrderItemInput!]
+}
+
+input ProductOrderItemInput {
+  productId: String!
+  quantity: Int! = 1
+}
+
+input UpdateOrderStatusInput {
+  status: OrderStatus!
+}
+
+enum OrderStatus {
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
 }

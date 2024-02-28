@@ -1,13 +1,7 @@
 import { UserRoleString } from 'src/auth/interfaces';
 import { Order } from './entities/order.entity';
 import { ProductOrder } from './entities/product-order.entity';
-
-export enum OrderStatus {
-  PROCESSING = 'processing',
-  SHIPPED = 'shipped',
-  DELIVERED = 'delivered',
-  CANCELLED = 'cancelled',
-}
+import { OrderStatus } from './dto';
 
 export interface IOrderResponse {
   id: string;
