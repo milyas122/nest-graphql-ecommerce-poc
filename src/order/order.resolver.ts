@@ -13,11 +13,19 @@ import {
   UpdateOrderStatusPayload,
 } from './dto';
 import { UpdateOrderStatusInput } from './dto/inputs/update-order.input';
+import { Order } from './entities/order.entity';
 
-@Resolver()
+@Resolver((of) => Order)
 export class OrderResolver {
   constructor(private readonly orderService: OrderService) {}
 
+  /**
+   * A getOrderHistory resolver that returns the order history of a login user
+   *
+   * @param {number} page - a page number for pagination
+   * @param {string} q - a query string for filtering the orders by title
+   * @return {Promise<GetOrderHistoryPayload>} returns the list of orders information
+   */
   @Query((type) => GetOrderHistoryPayload, { name: 'getOrderHistory' })
   @UseGuards(JwtAuthGuard)
   async getOrderHistory(
@@ -36,6 +44,12 @@ export class OrderResolver {
     return data;
   }
 
+  /**
+   * A resolver to retrieve order details by its id.
+   *
+   * @param {string} id - the ID of the order
+   * @return {Promise<OrderDetailPayload>} returns the detail information of an order
+   */
   @Query((type) => OrderDetailPayload, { name: 'getOrderDetail' })
   @UseGuards(JwtAuthGuard)
   async getOrderDetail(
@@ -77,6 +91,13 @@ export class OrderResolver {
     });
   }
 
+  /**
+   * A resolver to change the shipping status of an order
+   *
+   * @param {string} id - the ID of the order
+   * @param {UpdateOrderStatusInput} status - the updated status of the order
+   * @return {Promise<UpdateOrderStatusPayload>} the updated order status payload
+   */
   @Mutation(() => UpdateOrderStatusPayload, { name: 'updateOrderStatus' })
   @UseGuards(JwtAuthGuard)
   async updateOrderStatus(

@@ -17,6 +17,12 @@ export class AuthResolver {
     return 'Hello World!';
   }
 
+  /**
+   * A login user resolver that logs in a user with the provided login data
+   *
+   * @param {LoginUserInput} loginData - the login input data for the user
+   * @return {Promise<LoginUserPayload>} the payload containing the logged in user's information
+   */
   @Mutation((returns) => LoginUserPayload)
   async loginUser(
     @Args('loginData') loginData: LoginUserInput,
@@ -24,6 +30,12 @@ export class AuthResolver {
     return await this.authService.login(loginData);
   }
 
+  /**
+   * A signup user resolver that creates a new user (buyer)
+   *
+   * @param {CreateUserInput} createUserData - input data for creating a new user
+   * @return {Promise<RegisterUserPayload>} the payload containing the newly registered user with access_token
+   */
   @Mutation((returns) => RegisterUserPayload)
   async signupUser(
     @Args('createUserData') createUserData: CreateUserInput,
@@ -31,6 +43,12 @@ export class AuthResolver {
     return this.authService.createUser(createUserData, UserRole.BUYER);
   }
 
+  /**
+   * A register seller resolver that creates a new user (seller) only for admin
+   *
+   * @param {CreateUserInput} createUserData - input data for creating a new seller
+   * @return {Promise<RegisterUserPayload>} the payload containing the newly registered seller with access_token
+   */
   @Mutation((returns) => RegisterUserPayload)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @SetMetadata('roles', [UserRole.ADMIN])

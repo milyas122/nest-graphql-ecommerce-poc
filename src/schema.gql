@@ -136,7 +136,7 @@ type CreateProductPayload {
 }
 
 type Query {
-  getProducts(page: Int!): GetProductListPayload!
+  getProducts(page: Int!): GetProductListPayload
   getProductDetail(id: String!): GetProductDetailPayload!
   sayHello: String!
   getOrderHistory(page: Int = 1, q: String): GetOrderHistoryPayload!

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { HttpStatus, Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { GraphQLModule } from '@nestjs/graphql';
 import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
@@ -14,6 +14,21 @@ import { OrderModule } from './order/order.module';
       driver: ApolloDriver,
       autoSchemaFile: 'src/schema.gql',
       context: ({ req, res }) => ({ req, res }),
+      formatError: (err) => {
+        const originalError = (err.extensions as any)?.originalError;
+        if (originalError && originalError.statusCode) {
+          return {
+            message: originalError.message,
+            statusCode: originalError.statusCode,
+            error: originalError.error,
+          };
+        } else {
+          return {
+            message: 'Internal server error',
+            statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+          };
+        }
+      },
     }),
     ConfigModule.forRoot({
       isGlobal: true,
