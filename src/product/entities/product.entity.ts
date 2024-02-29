@@ -4,6 +4,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
 
 import { User } from 'src/auth/entities/user.entity';
@@ -35,11 +36,11 @@ export class Product {
 
   @Field((type) => User, { nullable: true })
   @ManyToOne(() => User, (user) => user.products)
-  seller: User;
+  seller: Relation<User>;
 
   @Field((type) => [ProductOrder])
   @OneToMany(() => ProductOrder, (productOrder) => productOrder.product)
-  productOrders: ProductOrder[];
+  productOrders: Relation<ProductOrder[]>;
 
   constructor(entity: Partial<Product>) {
     Object.assign(this, entity);

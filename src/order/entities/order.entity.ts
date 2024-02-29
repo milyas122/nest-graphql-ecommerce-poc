@@ -5,6 +5,7 @@ import {
   ManyToOne,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
   UpdateDateColumn,
 } from 'typeorm';
 
@@ -37,17 +38,17 @@ export class Order {
 
   @Field((type) => User)
   @ManyToOne(() => User, (user) => user.buyerOrders)
-  buyer: User;
+  buyer: Relation<User>;
 
   @Field((type) => User)
   @ManyToOne(() => User, (user) => user.sellerOrders)
-  seller: User;
+  seller: Relation<User>;
 
   @Field((type) => [ProductOrder])
   @OneToMany(() => ProductOrder, (productOrder) => productOrder.order, {
     cascade: true,
   })
-  productOrders: ProductOrder[];
+  productOrders: Relation<ProductOrder[]>;
 
   constructor(entity: Partial<Order>) {
     Object.assign(this, entity);

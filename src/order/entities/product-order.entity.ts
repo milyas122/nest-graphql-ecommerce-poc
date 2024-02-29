@@ -1,4 +1,10 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  Relation,
+} from 'typeorm';
 
 import { Product } from 'src/product/entities/product.entity';
 import { Order } from './order.entity';
@@ -22,10 +28,10 @@ export class ProductOrder {
   @ManyToOne(() => Product, (product) => product.productOrders, {
     cascade: true,
   })
-  product: Product;
+  product: Relation<Product>;
 
   @ManyToOne(() => Order, (order) => order.productOrders)
-  order: Order;
+  order: Relation<Order>;
 
   constructor(entity: Partial<ProductOrder>) {
     Object.assign(this, entity);

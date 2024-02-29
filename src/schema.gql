@@ -145,7 +145,7 @@ type JwtPayload {
   id: String!
   email: String!
   name: String!
-  role: String!
+  role: UserRole!
 }
 
 type GetProductList {

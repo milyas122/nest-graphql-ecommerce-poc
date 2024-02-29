@@ -4,6 +4,7 @@ import {
   ManyToMany,
   OneToMany,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
 
 import { Order } from 'src/order/entities/order.entity';
@@ -36,18 +37,18 @@ export class User {
 
   @Field((type) => [Product])
   @OneToMany(() => Product, (product) => product.seller, { cascade: true })
-  products: Product[];
+  products: Relation<Product[]>;
 
   @Field((type) => [Order])
   @OneToMany(() => Order, (order) => order.buyer, { cascade: true })
-  buyerOrders: Order[];
+  buyerOrders: Relation<Order[]>;
 
   @Field((type) => [Order])
   @OneToMany(() => Order, (order) => order.seller, { cascade: true })
-  sellerOrders: Order[];
+  sellerOrders: Relation<Order[]>;
 
   @ManyToMany(() => RolePermission, (rolePermission) => rolePermission.users)
-  permissions: RolePermission[];
+  permissions: Relation<RolePermission[]>;
 
   constructor(entity: Partial<User>) {
     Object.assign(this, entity);

@@ -1,3 +1,4 @@
+import { UserRole } from 'src/auth/dto';
 import { Product } from './entities/product.entity';
 import { UserRoleString } from 'src/auth/interfaces';
 
@@ -5,13 +6,13 @@ export interface IJwtPayload {
   id: string;
   email: string;
   name: string;
-  role: UserRoleString;
+  role: UserRole;
 }
 
 export interface IRemoveProduct {
   productId: string;
   userId: string;
-  role: UserRoleString;
+  role: UserRole;
 }
 
 export interface IUpdateProduct extends IRemoveProduct {}

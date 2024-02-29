@@ -4,6 +4,7 @@ import {
   JoinTable,
   ManyToMany,
   PrimaryGeneratedColumn,
+  Relation,
 } from 'typeorm';
 import { User } from './user.entity';
 
@@ -20,7 +21,7 @@ export class RolePermission {
 
   @ManyToMany(() => User, (user) => user.permissions)
   @JoinTable()
-  users: User[];
+  users: Relation<User[]>;
 
   constructor(entity: Partial<RolePermission>) {
     Object.assign(this, entity);

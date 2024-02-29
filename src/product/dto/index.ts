@@ -1,7 +1,7 @@
 import { Field, Int, ObjectType, OmitType, PickType } from '@nestjs/graphql';
 import { Product } from '../entities/product.entity';
-import { UserRoleString } from 'src/auth/interfaces';
 import { BaseResponseDto } from 'src/common/dto';
+import { UserRole } from 'src/auth/dto';
 
 @ObjectType()
 export class JwtPayload {
@@ -14,8 +14,8 @@ export class JwtPayload {
   @Field()
   name: string;
 
-  @Field()
-  role: UserRoleString;
+  @Field((type) => UserRole)
+  role: UserRole;
 }
 
 @ObjectType()
