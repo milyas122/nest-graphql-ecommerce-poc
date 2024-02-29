@@ -8,7 +8,7 @@ import { Reflector } from '@nestjs/core';
 import { GqlExecutionContext } from '@nestjs/graphql';
 
 import { UserRole } from 'src/auth/interfaces';
-import { appConstants } from 'src/constants/verbose';
+import { appConstants } from 'src/lib/constants';
 
 @Injectable()
 export class RolesGuard implements CanActivate {

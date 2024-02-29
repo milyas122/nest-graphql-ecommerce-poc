@@ -1,10 +1,9 @@
 import { Args, Mutation, Resolver, Query, Int } from '@nestjs/graphql';
 import { CreateOrderInput } from './dto/inputs';
-import { CurrentUser } from 'src/current-user.decorator';
 import { JwtPayload } from 'src/product/dto';
 import { OrderService } from './order.service';
-import { SetMetadata, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard, RolesGuard } from 'src/guards';
+import { HttpStatus, SetMetadata, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard, RolesGuard } from 'src/common/guards';
 import { UserRole } from 'src/auth/interfaces';
 import {
   CancelOrderPayload,
@@ -14,6 +13,7 @@ import {
 } from './dto';
 import { UpdateOrderStatusInput } from './dto/inputs/update-order.input';
 import { Order } from './entities/order.entity';
+import { CurrentUser } from 'src/common/decorators';
 
 @Resolver((of) => Order)
 export class OrderResolver {
@@ -41,7 +41,11 @@ export class OrderResolver {
       page,
       q,
     });
-    return data;
+    return {
+      status: HttpStatus.ACCEPTED,
+      message: 'success',
+      data,
+    };
   }
 
   /**
@@ -57,12 +61,16 @@ export class OrderResolver {
     @CurrentUser() user: JwtPayload,
   ): Promise<OrderDetailPayload> {
     const { id: userId, role } = user;
-    const result = await this.orderService.getOrderById({
+    const data = await this.orderService.getOrderById({
       orderId: id,
       role,
       userId,
     });
-    return result;
+    return {
+      status: HttpStatus.ACCEPTED,
+      message: 'success',
+      data,
+    };
   }
 
   // not tested yet bcz of playground token issue
@@ -77,6 +85,12 @@ export class OrderResolver {
     return await this.orderService.createOrder(data, userId);
   }
 
+  /**
+   * Cancels an order.
+   *
+   * @param {string} id - The ID of the order to be cancelled
+   * @return {Promise<CancelOrderPayload>} The payload containing the updated cancel order
+   */
   @Mutation(() => CancelOrderPayload, { name: 'cancelOrder' })
   @UseGuards(JwtAuthGuard)
   async cancelOrder(
@@ -84,11 +98,16 @@ export class OrderResolver {
     @CurrentUser() user: JwtPayload,
   ): Promise<CancelOrderPayload> {
     const { id: userId, role } = user;
-    return await this.orderService.cancelOrder({
+    const data = await this.orderService.cancelOrder({
       orderId: id,
       role,
       userId,
     });
+    return {
+      status: HttpStatus.ACCEPTED,
+      message: 'success',
+      data,
+    };
   }
 
   /**
@@ -106,11 +125,16 @@ export class OrderResolver {
     @CurrentUser() user: JwtPayload,
   ): Promise<UpdateOrderStatusPayload> {
     const { id: userId, role } = user;
-    return await this.orderService.updateOrderStatus({
+    const data = await this.orderService.updateOrderStatus({
       orderId: id,
       role,
       userId,
       status,
     });
+    return {
+      status: HttpStatus.ACCEPTED,
+      message: 'success',
+      data,
+    };
   }
 }

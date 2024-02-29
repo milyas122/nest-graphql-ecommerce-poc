@@ -45,14 +45,25 @@ type User {
   sellerOrders: [Order!]!
 }
 
-type GetOrderHistoryPayload {
+type BaseResponseDto {
+  status: Int!
+  message: String!
+}
+
+type GetOrderHistory {
   current_page: Int!
   total_pages: Int!
   total: Int!
   orders: [Order!]!
 }
 
-type OrderDetailPayload {
+type GetOrderHistoryPayload {
+  status: Int!
+  message: String!
+  data: GetOrderHistory!
+}
+
+type OrderDetail {
   id: String!
   order_id: String!
   status: String!
@@ -61,7 +72,27 @@ type OrderDetailPayload {
   productOrders: [ProductOrder!]!
 }
 
+type OrderDetailPayload {
+  status: Int!
+  message: String!
+  data: OrderDetail!
+}
+
+type CancelOrder {
+  id: String!
+  order_id: String!
+  status: String!
+  created_at: DateTime!
+  updated_at: DateTime!
+}
+
 type CancelOrderPayload {
+  status: Int!
+  message: String!
+  data: CancelOrder!
+}
+
+type UpdateOrderStatus {
   id: String!
   order_id: String!
   status: String!
@@ -70,14 +101,12 @@ type CancelOrderPayload {
 }
 
 type UpdateOrderStatusPayload {
-  id: String!
-  order_id: String!
-  status: String!
-  created_at: DateTime!
-  updated_at: DateTime!
+  status: Int!
+  message: String!
+  data: UpdateOrderStatus!
 }
 
-type CreateUserPayload {
+type CreateUser {
   sub: String!
   email: String!
   name: String!
@@ -90,18 +119,26 @@ enum UserRole {
   BUYER
 }
 
+type LoginUser {
+  user: CreateUser!
+  access_token: String!
+}
+
 type LoginUserPayload {
-  user: CreateUserPayload!
+  status: Int!
+  message: String!
+  data: LoginUser!
+}
+
+type RegisterUser {
+  user: CreateUser!
   access_token: String!
 }
 
 type RegisterUserPayload {
-  user: CreateUserPayload!
-  access_token: String!
-}
-
-type MessagePayload {
+  status: Int!
   message: String!
+  data: RegisterUser!
 }
 
 type JwtPayload {
@@ -111,14 +148,20 @@ type JwtPayload {
   role: String!
 }
 
-type GetProductListPayload {
+type GetProductList {
   current_page: Int!
   total_pages: Int!
   total: Int!
   products: [Product!]!
 }
 
-type GetProductDetailPayload {
+type GetProductListPayload {
+  status: Int!
+  message: String!
+  data: GetProductList!
+}
+
+type GetProduct {
   id: String!
   title: String!
   description: String!
@@ -127,12 +170,24 @@ type GetProductDetailPayload {
   seller: JwtPayload!
 }
 
-type CreateProductPayload {
+type GetProductDetailPayload {
+  status: Int!
+  message: String!
+  data: GetProduct!
+}
+
+type CreateProduct {
   id: String!
   title: String!
   description: String!
   price: Int!
   stock: Int!
+}
+
+type CreateProductPayload {
+  status: Int!
+  message: String!
+  data: CreateProduct!
 }
 
 type Query {
@@ -144,9 +199,9 @@ type Query {
 }
 
 type Mutation {
-  removeProduct(id: String!): MessagePayload!
+  removeProduct(id: String!): BaseResponseDto!
   createProduct(createProductInput: CreateProductInput!): CreateProductPayload!
-  updateProduct(id: String!, updateProductInput: UpdateProductInput!): MessagePayload!
+  updateProduct(id: String!, updateProductInput: UpdateProductInput!): BaseResponseDto!
   loginUser(loginData: LoginUserInput!): LoginUserPayload!
   signupUser(createUserData: CreateUserInput!): RegisterUserPayload!
   registerSeller(createUserData: CreateUserInput!): RegisterUserPayload!

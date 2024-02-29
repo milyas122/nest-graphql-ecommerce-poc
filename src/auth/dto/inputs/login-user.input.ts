@@ -1,7 +1,7 @@
 import { Field, InputType } from '@nestjs/graphql';
 import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
 
-import { authConstants } from 'src/constants/verbose';
+import { authConstants } from 'src/lib/constants';
 
 @InputType()
 export class LoginUserInput {

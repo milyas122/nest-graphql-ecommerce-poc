@@ -16,7 +16,18 @@ export interface ICreateUser {
   sub: string;
   email: string;
   name: string;
-  role: UserRoleString;
+  // role: UserRoleString;
+  role: UserRole;
 }
 
 export interface ILogin extends ICreateUser {}
+
+export interface ILoginUser {
+  access_token: string;
+  user: ILogin;
+}
+
+export interface IRegisterUser {
+  access_token: string;
+  user: ICreateUser;
+}

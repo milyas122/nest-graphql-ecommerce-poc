@@ -6,6 +6,7 @@ import {
   registerEnumType,
 } from '@nestjs/graphql';
 import { Order } from '../entities/order.entity';
+import { BaseResponseDto } from 'src/common/dto';
 
 export enum OrderStatus {
   PROCESSING = 'processing',
@@ -19,7 +20,7 @@ registerEnumType(OrderStatus, {
 });
 
 @ObjectType()
-export class GetOrderHistoryPayload {
+class GetOrderHistory {
   @Field((type) => Int)
   current_page: number;
 
@@ -34,18 +35,42 @@ export class GetOrderHistoryPayload {
 }
 
 @ObjectType()
-export class OrderDetailPayload extends OmitType(Order, ['buyer', 'seller']) {}
+export class GetOrderHistoryPayload extends BaseResponseDto {
+  @Field((type) => GetOrderHistory)
+  data: GetOrderHistory;
+}
 
 @ObjectType()
-export class CancelOrderPayload extends OmitType(Order, [
+class OrderDetail extends OmitType(Order, ['buyer', 'seller']) {}
+
+@ObjectType()
+export class OrderDetailPayload extends BaseResponseDto {
+  @Field((type) => OrderDetail)
+  data: OrderDetail;
+}
+
+@ObjectType()
+class CancelOrder extends OmitType(Order, [
   'buyer',
   'seller',
   'productOrders',
 ]) {}
 
 @ObjectType()
-export class UpdateOrderStatusPayload extends OmitType(Order, [
+export class CancelOrderPayload extends BaseResponseDto {
+  @Field((type) => CancelOrder)
+  data: CancelOrder;
+}
+
+@ObjectType()
+class UpdateOrderStatus extends OmitType(Order, [
   'buyer',
   'seller',
   'productOrders',
 ]) {}
+
+@ObjectType()
+export class UpdateOrderStatusPayload extends BaseResponseDto {
+  @Field((type) => UpdateOrderStatus)
+  data: UpdateOrderStatus;
+}

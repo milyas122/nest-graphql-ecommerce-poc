@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty } from 'class-validator';
-import { orderConstants } from 'src/constants/verbose';
+import { orderConstants } from 'src/lib/constants';
 import { Field, InputType } from '@nestjs/graphql';
 import { OrderStatus } from '..';
 

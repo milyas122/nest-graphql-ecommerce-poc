@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 
@@ -12,7 +12,7 @@ import {
   IUpdateProduct,
 } from './interfaces';
 import { UserRole } from 'src/auth/interfaces';
-import { productConstants } from 'src/constants/verbose';
+import { productConstants } from 'src/lib/constants';
 import { AuthService } from 'src/auth/auth.service';
 import { CreateProductInput } from './dto/inputs/create-product.input';
 import { UpdateProductInput } from './dto/inputs';
@@ -36,14 +36,21 @@ export class ProductService {
     data: CreateProductInput,
     user: IJwtPayload,
   ): Promise<ICreateProductResponse> {
-    const seller = await this.authService.findOneBy({ id: user.id });
-    const product = new Product({
-      seller,
-      ...data,
-    });
-    await this.productRepository.save(product);
-    const { seller: sellerObj, ...newProduct } = product;
-    return newProduct;
+    try {
+      const seller = await this.authService.findOneBy({ id: user.id });
+      const product = new Product({
+        seller,
+        ...data,
+      });
+      await this.productRepository.save(product);
+      const { seller: sellerObj, ...newProduct } = product;
+      return newProduct;
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
+      );
+    }
   }
 
   /**
@@ -53,24 +60,30 @@ export class ProductService {
    * @return {Promise<IGetProductList>} An object containing the list of products, the total number of pages, and the total number of products
    */
   async getProducts(pageNo: number): Promise<IGetProductList> {
-    const take = 4;
-    const skip = (pageNo - 1) * take;
-    const result = await this.productRepository.findAndCount({
-      take,
-      skip,
-      relations: {
-        seller: true,
-      },
-    });
-    return {
-      products: result[0],
-      current_page: pageNo,
-      total_pages: Math.ceil(result[1] / take),
-      total: result[1],
-    };
+    try {
+      const take = 4;
+      const skip = (pageNo - 1) * take;
+      const result = await this.productRepository.findAndCount({
+        take,
+        skip,
+        relations: {
+          seller: true,
+        },
+      });
+      return {
+        products: result[0],
+        current_page: pageNo,
+        total_pages: Math.ceil(result[1] / take),
+        total: result[1],
+      };
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
+      );
+    }
   }
 
-  // Done
   /**
    * Retrieves product details by ID.
    *
@@ -78,21 +91,28 @@ export class ProductService {
    * @return {Promise<IGetProductDetailResponse>} Return an object with the product details
    */
   async getProductDetail(id: string): Promise<IGetProductDetailResponse> {
-    const product = await this.productRepository.findOne({
-      where: {
-        id,
-      },
-      relations: ['seller'],
-    });
-    if (!product) {
-      throw new BadRequestException(productConstants.productNotFound);
+    try {
+      const product = await this.productRepository.findOne({
+        where: {
+          id,
+        },
+        relations: ['seller'],
+      });
+      if (!product) {
+        throw new BadRequestException(productConstants.productNotFound);
+      }
+      const { seller, ...result } = product;
+      const { password, ...sellerWithoutPassword } = seller;
+      return {
+        ...result,
+        seller: sellerWithoutPassword as IJwtPayload,
+      };
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
+      );
     }
-    const { seller, ...result } = product;
-    const { password, ...sellerWithoutPassword } = seller;
-    return {
-      ...result,
-      seller: sellerWithoutPassword as IJwtPayload,
-    };
   }
 
   /**
@@ -102,21 +122,28 @@ export class ProductService {
    * @return {Promise<{ message: string }>} a promise that resolves to an object with a message property
    */
   async removeProduct(data: IRemoveProduct): Promise<{ message: string }> {
-    const { productId, userId, role } = data;
-    const where = {
-      id: productId,
-    };
-    // Check product owner because admin has also a right to remove products
-    if (role === UserRole.SELLER) {
-      where['seller'] = { id: userId };
+    try {
+      const { productId, userId, role } = data;
+      const where = {
+        id: productId,
+      };
+      // Check product owner because admin has also a right to remove products
+      if (role === UserRole.SELLER) {
+        where['seller'] = { id: userId };
+      }
+      const { affected } = await this.productRepository.delete({ ...where });
+      if (affected === 0) {
+        throw new BadRequestException(productConstants.productNotFound);
+      }
+      return {
+        message: productConstants.productDeletedSuccessFully,
+      };
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
+      );
     }
-    const { affected } = await this.productRepository.delete({ ...where });
-    if (affected === 0) {
-      throw new BadRequestException(productConstants.productNotFound);
-    }
-    return {
-      message: 'product deleted successfully',
-    };
   }
 
   /**
@@ -130,22 +157,30 @@ export class ProductService {
     updateDto: UpdateProductInput,
     data: IUpdateProduct,
   ): Promise<{ message: string }> {
-    const { userId, role } = data;
-
-    const where = {
-      id: data.productId,
-    };
-
-    if (role === UserRole.SELLER) {
-      where['seller'] = { id: userId };
+    try {
+      const { userId, role } = data;
+      const where = {
+        id: data.productId,
+      };
+      if (role === UserRole.SELLER) {
+        where['seller'] = { id: userId };
+      }
+      const { affected } = await this.productRepository.update(
+        where,
+        updateDto,
+      );
+      if (affected === 0) {
+        throw new BadRequestException(productConstants.productNotFound);
+      }
+      return {
+        message: productConstants.productUpdatedSuccessFully,
+      };
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
+      );
     }
-    const { affected } = await this.productRepository.update(where, updateDto);
-    if (affected === 0) {
-      throw new BadRequestException(productConstants.productNotFound);
-    }
-    return {
-      message: 'product updated successfully',
-    };
   }
 
   /**
@@ -155,18 +190,25 @@ export class ProductService {
    * @return {Promise<Product[]>} Promise that resolves to an array of products
    */
   async getProductsByIds(ids: string[]): Promise<Product[]> {
-    return await this.productRepository.find({
-      where: {
-        id: In(ids),
-      },
-      relations: {
-        seller: true,
-      },
-      select: {
-        seller: {
-          id: true,
+    try {
+      return await this.productRepository.find({
+        where: {
+          id: In(ids),
         },
-      },
-    });
+        relations: {
+          seller: true,
+        },
+        select: {
+          seller: {
+            id: true,
+          },
+        },
+      });
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
+      );
+    }
   }
 }

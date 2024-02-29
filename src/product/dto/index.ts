@@ -1,12 +1,7 @@
 import { Field, Int, ObjectType, OmitType, PickType } from '@nestjs/graphql';
 import { Product } from '../entities/product.entity';
 import { UserRoleString } from 'src/auth/interfaces';
-
-@ObjectType()
-export class MessagePayload {
-  @Field()
-  message: string;
-}
+import { BaseResponseDto } from 'src/common/dto';
 
 @ObjectType()
 export class JwtPayload {
@@ -24,7 +19,7 @@ export class JwtPayload {
 }
 
 @ObjectType()
-export class GetProductListPayload {
+class GetProductList {
   @Field((type) => Int)
   current_page: number;
 
@@ -39,7 +34,13 @@ export class GetProductListPayload {
 }
 
 @ObjectType()
-export class GetProductDetailPayload extends PickType(Product, [
+export class GetProductListPayload extends BaseResponseDto {
+  @Field((type) => GetProductList)
+  data: GetProductList;
+}
+
+@ObjectType()
+class GetProduct extends PickType(Product, [
   'id',
   'title',
   'description',
@@ -51,7 +52,16 @@ export class GetProductDetailPayload extends PickType(Product, [
 }
 
 @ObjectType()
-export class CreateProductPayload extends OmitType(Product, [
-  'seller',
-  'productOrders',
-]) {}
+export class GetProductDetailPayload extends BaseResponseDto {
+  @Field((type) => GetProduct)
+  data: GetProduct;
+}
+
+@ObjectType()
+class CreateProduct extends OmitType(GetProduct, ['seller']) {}
+
+@ObjectType()
+export class CreateProductPayload extends BaseResponseDto {
+  @Field((type) => CreateProduct)
+  data: CreateProduct;
+}

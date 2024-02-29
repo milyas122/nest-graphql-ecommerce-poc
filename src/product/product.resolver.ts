@@ -1,19 +1,20 @@
 import { Resolver, Query, Args, Int, Mutation } from '@nestjs/graphql';
+import { HttpStatus, SetMetadata, UseGuards } from '@nestjs/common';
+
 import { ProductService } from './product.service';
 import {
   CreateProductPayload,
   GetProductDetailPayload,
   GetProductListPayload,
   JwtPayload,
-  MessagePayload,
 } from './dto';
-import { SetMetadata, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard, RolesGuard } from 'src/guards';
+import { JwtAuthGuard, RolesGuard } from 'src/common/guards';
 import { UserRole } from 'src/auth/interfaces';
-import { CurrentUser } from 'src/current-user.decorator';
 import { CreateProductInput } from './dto/inputs/create-product.input';
 import { UpdateProductInput } from './dto/inputs';
 import { Product } from './entities/product.entity';
+import { CurrentUser } from 'src/common/decorators';
+import { BaseResponseDto } from 'src/common/dto';
 
 @Resolver((of) => Product)
 export class ProductResolver {
@@ -29,7 +30,12 @@ export class ProductResolver {
   async getProducts(
     @Args('page', { type: () => Int }) page: number,
   ): Promise<GetProductListPayload> {
-    return await this.productService.getProducts(page);
+    const data = await this.productService.getProducts(page);
+    return {
+      status: HttpStatus.ACCEPTED,
+      message: 'success',
+      data,
+    };
   }
 
   /**
@@ -42,7 +48,12 @@ export class ProductResolver {
   async getProductDetail(
     @Args('id') id: string,
   ): Promise<GetProductDetailPayload> {
-    return await this.productService.getProductDetail(id);
+    const data = await this.productService.getProductDetail(id);
+    return {
+      status: HttpStatus.ACCEPTED,
+      message: 'success',
+      data,
+    };
   }
 
   /**
@@ -51,19 +62,23 @@ export class ProductResolver {
    * @param {string} id - the ID of the product to be removed
    * @return {Promise<{ message: string }>} a message indicating the result of the removal
    */
-  @Mutation(() => MessagePayload, { name: 'removeProduct' })
+  @Mutation(() => BaseResponseDto, { name: 'removeProduct' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @SetMetadata('roles', [UserRole.ADMIN, UserRole.SELLER])
   async removeProduct(
     @Args('id') id: string,
     @CurrentUser() user: JwtPayload,
-  ): Promise<{ message: string }> {
+  ): Promise<BaseResponseDto> {
     const { role, id: userId } = user;
-    return await this.productService.removeProduct({
+    const { message } = await this.productService.removeProduct({
       productId: id,
       userId,
       role,
     });
+    return {
+      status: HttpStatus.ACCEPTED,
+      message,
+    };
   }
 
   /**
@@ -79,8 +94,12 @@ export class ProductResolver {
     @Args('createProductInput') data: CreateProductInput,
     @CurrentUser() user: JwtPayload,
   ): Promise<CreateProductPayload> {
-    console.log(user);
-    return await this.productService.createProduct(data, user);
+    const result = await this.productService.createProduct(data, user);
+    return {
+      status: HttpStatus.CREATED,
+      message: 'success',
+      data: result,
+    };
   }
 
   /**
@@ -90,19 +109,23 @@ export class ProductResolver {
    * @param {UpdateProductInput} data - the data to update the product
    * @return {Promise<{ message: string }>} a promise with a success message
    */
-  @Mutation(() => MessagePayload, { name: 'updateProduct' })
+  @Mutation(() => BaseResponseDto, { name: 'updateProduct' })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @SetMetadata('roles', [UserRole.SELLER, UserRole.ADMIN])
   async updateProduct(
     @Args('id') id: string,
     @Args('updateProductInput') data: UpdateProductInput,
     @CurrentUser() user: JwtPayload,
-  ): Promise<{ message: string }> {
+  ): Promise<BaseResponseDto> {
     const { role, id: userId } = user;
-    return await this.productService.updateProduct(data, {
+    const { message } = await this.productService.updateProduct(data, {
       productId: id,
       userId,
       role,
     });
+    return {
+      status: HttpStatus.ACCEPTED,
+      message,
+    };
   }
 }

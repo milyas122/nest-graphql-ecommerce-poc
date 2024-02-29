@@ -1,4 +1,5 @@
 import { Field, ObjectType, registerEnumType } from '@nestjs/graphql';
+import { BaseResponseDto } from 'src/common/dto';
 
 export enum UserRole {
   ADMIN = 'admin',
@@ -9,7 +10,7 @@ export enum UserRole {
 registerEnumType(UserRole, { name: 'UserRole' });
 
 @ObjectType()
-export class CreateUserPayload {
+class CreateUser {
   // rename it to CreateUserDto
   @Field()
   sub: string;
@@ -25,13 +26,31 @@ export class CreateUserPayload {
 }
 
 @ObjectType()
-export class LoginUserPayload {
-  @Field((type) => CreateUserPayload)
-  user: CreateUserPayload;
+export class CreateUserPayload extends BaseResponseDto {
+  @Field((type) => CreateUser)
+  data: CreateUser;
+}
+
+@ObjectType()
+class LoginUser {
+  @Field((type) => CreateUser)
+  user: CreateUser;
 
   @Field()
   access_token: string;
 }
 
 @ObjectType()
-export class RegisterUserPayload extends LoginUserPayload {}
+export class LoginUserPayload extends BaseResponseDto {
+  @Field((type) => LoginUser)
+  data: LoginUser;
+}
+
+@ObjectType()
+class RegisterUser extends LoginUser {}
+
+@ObjectType()
+export class RegisterUserPayload extends BaseResponseDto {
+  @Field((type) => RegisterUser)
+  data: RegisterUser;
+}

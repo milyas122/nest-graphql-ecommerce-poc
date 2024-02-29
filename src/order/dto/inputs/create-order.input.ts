@@ -6,7 +6,7 @@ import {
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
-import { orderConstants } from 'src/constants/verbose';
+import { orderConstants } from 'src/lib/constants';
 import { Field, InputType, Int } from '@nestjs/graphql';
 
 @InputType()

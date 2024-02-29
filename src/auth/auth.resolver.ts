@@ -1,12 +1,12 @@
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { HttpStatus, SetMetadata, UseGuards } from '@nestjs/common';
 
 import { User } from './entities/user.entity';
 import { AuthService } from './auth.service';
 import { CreateUserInput, LoginUserInput } from './dto/inputs';
 import { UserRole } from './interfaces';
 import { LoginUserPayload, RegisterUserPayload } from './dto';
-import { SetMetadata, UseGuards } from '@nestjs/common';
-import { JwtAuthGuard, RolesGuard } from 'src/guards';
+import { JwtAuthGuard, RolesGuard } from 'src/common/guards';
 
 @Resolver((of) => User)
 export class AuthResolver {
@@ -27,7 +27,12 @@ export class AuthResolver {
   async loginUser(
     @Args('loginData') loginData: LoginUserInput,
   ): Promise<LoginUserPayload> {
-    return await this.authService.login(loginData);
+    const data = await this.authService.login(loginData);
+    return {
+      status: HttpStatus.ACCEPTED,
+      message: 'Login successfully',
+      data,
+    };
   }
 
   /**
@@ -40,7 +45,15 @@ export class AuthResolver {
   async signupUser(
     @Args('createUserData') createUserData: CreateUserInput,
   ): Promise<RegisterUserPayload> {
-    return this.authService.createUser(createUserData, UserRole.BUYER);
+    const data = await this.authService.createUser(
+      createUserData,
+      UserRole.BUYER,
+    );
+    return {
+      status: HttpStatus.ACCEPTED,
+      message: 'Signup successfully',
+      data,
+    };
   }
 
   /**
@@ -55,6 +68,14 @@ export class AuthResolver {
   async registerSeller(
     @Args('createUserData') createUserData: CreateUserInput,
   ): Promise<RegisterUserPayload> {
-    return this.authService.createUser(createUserData, UserRole.SELLER);
+    const data = await this.authService.createUser(
+      createUserData,
+      UserRole.SELLER,
+    );
+    return {
+      status: HttpStatus.ACCEPTED,
+      message: 'Signup successfully',
+      data,
+    };
   }
 }

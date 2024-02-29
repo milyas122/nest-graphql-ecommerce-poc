@@ -1,10 +1,10 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ILike, Repository } from 'typeorm';
 
 import { Order } from './entities/order.entity';
 import { ProductOrder } from './entities/product-order.entity';
-import { orderConstants } from 'src/constants/verbose';
+import { orderConstants } from 'src/lib/constants';
 import {
   IGetOrderHistoryParams,
   ICancelOrder,
@@ -19,6 +19,7 @@ import { ProductService } from 'src/product/product.service';
 import { UserRole } from 'src/auth/interfaces';
 import { OrderStatus } from './dto';
 import { CreateOrderInput } from './dto/inputs';
+import { generateOrderNumber } from 'src/lib/helper';
 
 @Injectable()
 export class OrderService {
@@ -40,31 +41,38 @@ export class OrderService {
     { products }: CreateOrderInput,
     userId: string,
   ): Promise<IOrderResponse[]> {
-    const { sellerIds, sellerProductOrders } =
-      await this._updateProductInventory({
-        products,
+    try {
+      const { sellerIds, sellerProductOrders } =
+        await this._updateProductInventory({
+          products,
+        });
+      const buyer = await this.authService.findOneBy({ id: userId });
+      const sellers = await this.authService.findSellerByIds(sellerIds);
+      const orders = sellers.map((seller) => {
+        return new Order({
+          order_id: generateOrderNumber(),
+          status: OrderStatus.PROCESSING,
+          productOrders: sellerProductOrders[seller.id],
+          seller,
+          buyer,
+        });
       });
-    const buyer = await this.authService.findOneBy({ id: userId });
-    const sellers = await this.authService.findSellerByIds(sellerIds);
-    const orders = sellers.map((seller) => {
-      return new Order({
-        order_id: this._generateOrderNumber(),
-        status: OrderStatus.PROCESSING,
-        productOrders: sellerProductOrders[seller.id],
-        seller,
-        buyer,
+      await this.orderRepository.save(orders);
+      const result = orders.map((order) => {
+        const { seller, buyer, ...data } = order;
+        return {
+          ...data,
+          sellerId: seller.id,
+          buyerId: buyer.id,
+        };
       });
-    });
-    await this.orderRepository.save(orders);
-    const result = orders.map((order) => {
-      const { seller, buyer, ...data } = order;
-      return {
-        ...data,
-        sellerId: seller.id,
-        buyerId: buyer.id,
-      };
-    });
-    return result;
+      return result;
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
+      );
+    }
   }
 
   /**
@@ -76,40 +84,48 @@ export class OrderService {
   private async _updateProductInventory({
     products,
   }: CreateOrderInput): Promise<IUpdatedProductInventory> {
-    const productIds = products.map(({ productId }) => productId);
-    const productsList = await this.productService.getProductsByIds(productIds);
-    const productQuantityObjs = products.reduce(
-      (acc, { productId, quantity }) => {
-        if (!acc[productId]) {
-          acc[productId] = { quantity };
+    try {
+      const productIds = products.map(({ productId }) => productId);
+      const productsList =
+        await this.productService.getProductsByIds(productIds);
+      const productQuantityObjs = products.reduce(
+        (acc, { productId, quantity }) => {
+          if (!acc[productId]) {
+            acc[productId] = { quantity };
+          }
+          return acc;
+        },
+        {},
+      );
+      const sellerIds = [];
+      const sellerProductOrders: Record<string, ProductOrder[]> = {};
+      // check product inventory before creating an order
+      productsList.forEach((product) => {
+        if (productQuantityObjs[product.id].quantity > product.stock) {
+          throw new BadRequestException(
+            orderConstants.productOutOfStock(product.title),
+          );
         }
-        return acc;
-      },
-      {},
-    );
-    const sellerIds = [];
-    const sellerProductOrders: Record<string, ProductOrder[]> = {};
-    // check product inventory before creating an order
-    productsList.forEach((product) => {
-      if (productQuantityObjs[product.id].quantity > product.stock) {
-        throw new BadRequestException(
-          orderConstants.productOutOfStock(product.title),
-        );
-      }
-      if (!sellerProductOrders.hasOwnProperty(product.seller.id)) {
-        sellerProductOrders[product.seller.id] = [];
-        sellerIds.push(product.seller.id);
-      }
-      // Update product inventory
-      product.stock -= productQuantityObjs[product.id].quantity;
-      let productOrder = new ProductOrder({
-        product,
-        quantity: productQuantityObjs[product.id].quantity,
-        total_price: product.price * productQuantityObjs[product.id].quantity,
+        if (!sellerProductOrders.hasOwnProperty(product.seller.id)) {
+          sellerProductOrders[product.seller.id] = [];
+          sellerIds.push(product.seller.id);
+        }
+        // Update product inventory
+        product.stock -= productQuantityObjs[product.id].quantity;
+        let productOrder = new ProductOrder({
+          product,
+          quantity: productQuantityObjs[product.id].quantity,
+          total_price: product.price * productQuantityObjs[product.id].quantity,
+        });
+        sellerProductOrders[product.seller.id].push(productOrder);
       });
-      sellerProductOrders[product.seller.id].push(productOrder);
-    });
-    return { sellerProductOrders, sellerIds };
+      return { sellerProductOrders, sellerIds };
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
+      );
+    }
   }
 
   /**
@@ -119,24 +135,31 @@ export class OrderService {
    * @return {Promise<Order>} the cancelled order object
    */
   async cancelOrder({ orderId, userId, role }: ICancelOrder): Promise<Order> {
-    const where = { id: orderId };
-    if (role != UserRole.ADMIN) {
-      where[role] = { id: userId }; // seller or buyer specific
-    }
-    const order = await this.orderRepository.findOne({
-      where,
-    });
-    if (!order) {
-      throw new BadRequestException(orderConstants.orderNotFound);
-    }
-    if (order.status != OrderStatus.PROCESSING) {
-      throw new BadRequestException(
-        orderConstants.orderCanNotBeCancelled(order.order_id),
+    try {
+      const where = { id: orderId };
+      if (role != UserRole.ADMIN) {
+        where[role] = { id: userId }; // seller or buyer specific
+      }
+      const order = await this.orderRepository.findOne({
+        where,
+      });
+      if (!order) {
+        throw new BadRequestException(orderConstants.orderNotFound);
+      }
+      if (order.status != OrderStatus.PROCESSING) {
+        throw new BadRequestException(
+          orderConstants.orderCanNotBeCancelled(order.order_id),
+        );
+      }
+      order.status = OrderStatus.CANCELLED;
+      await this.orderRepository.save(order);
+      return order;
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
       );
     }
-    order.status = OrderStatus.CANCELLED;
-    await this.orderRepository.save(order);
-    return order;
   }
 
   /**
@@ -148,34 +171,41 @@ export class OrderService {
   async getOrderHistory(
     data: IGetOrderHistoryParams,
   ): Promise<IGetOrderHistoryResult> {
-    const { userId, role, page, q } = data;
-    const skip = page * (page - 1);
-    const limit = 5;
-    const where = {};
-    if (role != UserRole.ADMIN) {
-      where[role] = { id: userId }; // seller and buyer specific order
-    }
-    if (q) {
-      where['productOrders'] = {
-        product: {
-          title: ILike(`%${q}%`),
+    try {
+      const { userId, role, page, q } = data;
+      const skip = page * (page - 1);
+      const limit = 5;
+      const where = {};
+      if (role != UserRole.ADMIN) {
+        where[role] = { id: userId }; // seller and buyer specific order
+      }
+      if (q) {
+        where['productOrders'] = {
+          product: {
+            title: ILike(`%${q}%`),
+          },
+        }; // search by product title
+      }
+      const result = await this.orderRepository.findAndCount({
+        where,
+        take: limit,
+        skip,
+        relations: {
+          productOrders: true,
         },
-      }; // search by product title
+      });
+      return {
+        orders: result[0],
+        current_page: page,
+        total_pages: Math.ceil(result[1] / limit),
+        total: result[1],
+      };
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
+      );
     }
-    const result = await this.orderRepository.findAndCount({
-      where,
-      take: limit,
-      skip,
-      relations: {
-        productOrders: true,
-      },
-    });
-    return {
-      orders: result[0],
-      current_page: page,
-      total_pages: Math.ceil(result[1] / limit),
-      total: result[1],
-    };
   }
 
   /**
@@ -191,20 +221,27 @@ export class OrderService {
     userId,
     role,
   }: IGetOrderDetailParams): Promise<Order> {
-    const where = { id: orderId };
-    if (role != UserRole.ADMIN) {
-      where[role] = { id: userId }; // seller and buyer specific order
+    try {
+      const where = { id: orderId };
+      if (role != UserRole.ADMIN) {
+        where[role] = { id: userId }; // seller and buyer specific order
+      }
+      const order = await this.orderRepository.findOne({
+        where,
+        relations: {
+          productOrders: true,
+        },
+      });
+      if (!order) {
+        throw new BadRequestException(orderConstants.orderNotFound);
+      }
+      return order;
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
+      );
     }
-    const order = await this.orderRepository.findOne({
-      where,
-      relations: {
-        productOrders: true,
-      },
-    });
-    if (!order) {
-      throw new BadRequestException(orderConstants.orderNotFound);
-    }
-    return order;
   }
 
   /**
@@ -214,37 +251,35 @@ export class OrderService {
    * @return {Promise<Order>} the updated order
    */
   async updateOrderStatus(data: IUpdateOrderStatusParams): Promise<Order> {
-    const { orderId, userId, role, status } = data;
-    const where = { id: orderId };
-    if (role != UserRole.ADMIN) {
-      where[role] = { id: userId }; // seller and buyer specific order
-    }
-    const order = await this.orderRepository.findOne({
-      where,
-    });
-    if (!order) {
-      throw new BadRequestException(orderConstants.orderNotFound);
-    }
-    if (
-      [OrderStatus.CANCELLED, OrderStatus.DELIVERED].includes(
-        order.status as OrderStatus,
-      )
-    ) {
-      throw new BadRequestException(
-        orderConstants.orderStatusCanNotBeUpdated(order.order_id),
+    try {
+      const { orderId, userId, role, status } = data;
+      const where = { id: orderId };
+      if (role != UserRole.ADMIN) {
+        where[role] = { id: userId }; // seller and buyer specific order
+      }
+      const order = await this.orderRepository.findOne({
+        where,
+      });
+      if (!order) {
+        throw new BadRequestException(orderConstants.orderNotFound);
+      }
+      if (
+        [OrderStatus.CANCELLED, OrderStatus.DELIVERED].includes(
+          order.status as OrderStatus,
+        )
+      ) {
+        throw new BadRequestException(
+          orderConstants.orderStatusCanNotBeUpdated(order.order_id),
+        );
+      }
+      order.status = status;
+      await this.orderRepository.save(order);
+      return order;
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
       );
     }
-    order.status = status;
-    await this.orderRepository.save(order);
-    return order;
-  }
-
-  /**
-   * A function to generate a unique order number.
-   *
-   * @return {string} the generated order number
-   */
-  private _generateOrderNumber(): string {
-    return `order-${Date.now()}-${Math.random().toString(36).slice(-8)}`;
   }
 }

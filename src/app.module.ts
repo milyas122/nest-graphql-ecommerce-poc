@@ -7,6 +7,7 @@ import { AuthModule } from './auth/auth.module';
 import { DatabaseModule } from './database/database.module';
 import { ProductModule } from './product/product.module';
 import { OrderModule } from './order/order.module';
+import { appConstants } from './lib/constants';
 
 @Module({
   imports: [
@@ -24,7 +25,7 @@ import { OrderModule } from './order/order.module';
           };
         } else {
           return {
-            message: 'Internal server error',
+            message: err.message,
             statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
           };
         }

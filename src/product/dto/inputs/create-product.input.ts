@@ -1,7 +1,7 @@
 import { Field, InputType, Int } from '@nestjs/graphql';
 import { IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 
-import { productConstants } from 'src/constants/verbose';
+import { productConstants } from 'src/lib/constants';
 
 @InputType()
 export class CreateProductInput {

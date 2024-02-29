@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  HttpException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -8,10 +9,9 @@ import { In, Repository } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import { JwtService } from '@nestjs/jwt';
 
-import { LoginUserPayload, RegisterUserPayload } from './dto';
 import { User } from './entities/user.entity';
-import { ICreateUser, UserRole } from './interfaces';
-import { authConstants } from 'src/constants/verbose';
+import { ICreateUser, ILoginUser, IRegisterUser, UserRole } from './interfaces';
+import { authConstants } from 'src/lib/constants';
 import { CreateUserInput, LoginUserInput } from './dto/inputs';
 
 @Injectable()
@@ -30,23 +30,30 @@ export class AuthService {
   async createUser(
     data: CreateUserInput,
     role: UserRole,
-  ): Promise<RegisterUserPayload> {
-    const isUserExist = await this.userRepository.findOneBy({
-      email: data.email,
-    });
-    if (isUserExist) {
-      throw new BadRequestException(authConstants.emailAlreadyExist);
+  ): Promise<IRegisterUser> {
+    try {
+      const isUserExist = await this.userRepository.findOneBy({
+        email: data.email,
+      });
+      if (isUserExist) {
+        throw new BadRequestException(authConstants.emailAlreadyExist);
+      }
+      const user = new User({ role, ...data });
+      await this.userRepository.save(user);
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        name: user.name,
+        role,
+      };
+      const accessToken = await this._generateToken(payload);
+      return { user: payload, access_token: accessToken };
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
+      );
     }
-    const user = new User({ role, ...data });
-    await this.userRepository.save(user);
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      name: user.name,
-      role,
-    };
-    const accessToken = await this._generateToken(payload);
-    return { user: payload, access_token: accessToken };
   }
 
   /**
@@ -55,28 +62,36 @@ export class AuthService {
    * @param {LoginDto} data - data object require for login
    * @return {Promise<{ user: ICreateUser; access_token: string }>} a promise that resolves with the created user object and an access token
    */
-  async login(data: LoginUserInput): Promise<LoginUserPayload> {
-    const { email, password } = data;
-    const user = await this.userRepository.findOneBy({ email });
-    if (!user) {
-      throw new UnauthorizedException(authConstants.emailPasswordError);
+  async login(data: LoginUserInput): Promise<ILoginUser> {
+    try {
+      const { email, password } = data;
+      const user = await this.userRepository.findOneBy({ email });
+      if (!user) {
+        throw new UnauthorizedException(authConstants.emailPasswordError);
+      }
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        throw new UnauthorizedException(authConstants.emailPasswordError);
+      }
+      const payload = {
+        sub: user.id,
+        email: user.email,
+        name: user.name,
+        role: UserRole[user.role.toUpperCase()],
+      };
+      console.log(UserRole[user.role.toUpperCase()]);
+      const accessToken = await this._generateToken(payload);
+      return {
+        user: payload,
+        access_token: accessToken,
+      };
+    } catch (error) {
+      console.log(error);
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
+      );
     }
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      throw new UnauthorizedException(authConstants.emailPasswordError);
-    }
-    const payload = {
-      sub: user.id,
-      email: user.email,
-      name: user.name,
-      role: UserRole[user.role.toUpperCase()],
-    };
-    console.log(UserRole[user.role.toUpperCase()]);
-    const accessToken = await this._generateToken(payload);
-    return {
-      user: payload,
-      access_token: accessToken,
-    };
   }
 
   /**
@@ -90,12 +105,26 @@ export class AuthService {
   }
 
   async findOneBy(where: Partial<User>) {
-    return await this.userRepository.findOneBy({ ...where });
+    try {
+      return await this.userRepository.findOneBy({ ...where });
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
+      );
+    }
   }
 
   async findSellerByIds(ids: string[]) {
-    return await this.userRepository.find({
-      where: { id: In(ids), role: UserRole.SELLER },
-    });
+    try {
+      return await this.userRepository.find({
+        where: { id: In(ids), role: UserRole.SELLER },
+      });
+    } catch (error) {
+      throw new HttpException(
+        { message: error.message, statusCode: error.status },
+        error.status,
+      );
+    }
   }
 }

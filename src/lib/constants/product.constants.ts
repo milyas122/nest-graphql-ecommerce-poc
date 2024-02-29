@@ -8,4 +8,6 @@ export const productConstants = {
   stockNotEmpty: 'stock must not be empty',
   stockMustBeAtLeast: 'stock must be at least 1',
   productNotFound: 'product not found',
+  productDeletedSuccessFully: 'product deleted successfully',
+  productUpdatedSuccessFully: 'product updated successfully',
 };

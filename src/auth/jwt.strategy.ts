@@ -8,7 +8,7 @@ import { Repository } from 'typeorm';
 import { ICreateUser } from './interfaces';
 import { User } from './entities/user.entity';
 import { IJwtPayload } from 'src/product/interfaces';
-import { authConstants } from 'src/constants/verbose';
+import { authConstants } from 'src/lib/constants';
 import { UserRole } from './interfaces';
 
 @Injectable()
